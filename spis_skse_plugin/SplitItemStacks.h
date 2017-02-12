@@ -96,6 +96,7 @@ namespace plugin_spis
 		public:
 			ContainerKey(TESObjectREFR* object) : ContainerRef(object), coordinates(object != nullptr ? &(ContainerRef->pos) : nullptr), rotation(object != nullptr ? &(ContainerRef->rot) : nullptr), cell((object != nullptr ? ContainerRef->parentCell : nullptr)) { _MESSAGE("_DEBUG_PREF_CTIN_init called"); };
 			ContainerKey() : ContainerRef(nullptr), coordinates(nullptr), rotation(nullptr), cell(nullptr) {};
+			ContainerKey(NiPoint3 * c, NiPoint3 * r) : coordinates(c), rotation(r) {};
 			void setContainerRef(TESObjectREFR* object)
 			{
 				ContainerRef = object;
@@ -106,7 +107,7 @@ namespace plugin_spis
 
 			//need this for serialization, will probably add an extra method for resyncing the actual object ref/cell
 			//whenever player interacts with it. but maybe not.
-			void setContainerKey(NiPoint3*& coord, NiPoint3*& rot)
+			void setContainerKey(NiPoint3* coord, NiPoint3* rot)
 			{
 				ContainerRef = nullptr;
 				coordinates = coord;
@@ -115,8 +116,8 @@ namespace plugin_spis
 			}
 
 			TESObjectREFR* getContainerRef() const { return ContainerRef; }
-			NiPoint3 getcoordinates() { return *coordinates; }
-			NiPoint3 getrotation() { return *rotation; }
+			NiPoint3 getcoordinates() const { return *coordinates; }
+			NiPoint3 getrotation() const { return *rotation; }
 			TESObjectCELL* getcell() { return cell; }
 
 			bool operator==(const ContainerKey &other) const
@@ -243,9 +244,12 @@ namespace plugin_spis
 				//_MESSAGE("ContainerKeyHash");
 				//ContainerKey nk = const_cast<const ContainerKey&>(k);
 				//return k.getContainerRef()->handleRefObject.m_uiRefCount >> 11;
-				std::size_t tk = std::hash < TESObjectREFR* > {}(k.getContainerRef());
+				//std::size_t tk = std::hash < TESObjectREFR* > {}(k.getContainerRef());
 				//_MESSAGE("DEBUG_PREF_CONT_didn't crash on cast");
-				return tk;
+				//return tk;
+
+				return std::size_t(k.getcoordinates().x) ^ std::size_t(k.getcoordinates().y) ^ std::size_t(k.getcoordinates().z) ^
+					   std::size_t(k.getrotation().x)    ^ std::size_t(k.getrotation().y)    ^ std::size_t(k.getrotation().z);
 			}
 		};
 

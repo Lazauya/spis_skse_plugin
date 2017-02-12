@@ -19,107 +19,7 @@ typedef tList<ExtraContainerChanges::EntryData> EntryDataList;
 
 namespace plugin_spis
 {
-	/*bool special_BaseExtraAdd(UInt8 type, BSExtraData* toAdd, BaseExtraList*& newBEL, AlchemyItem )
-	{
-		BSExtraData* next = newBEL->m_data;
-		newBEL->m_data = toAdd;
-		toAdd->next = next;
-		newBEL->MarkType(type, false);
-		return true;
-	};*/
-
-	/*void RearrangeExtraContChanges(StaticFunctionTag *base, TESObjectREFR * ContainerREF, TESForm * FormToSplit)
-	{
-		gLog.OpenRelative(CSIDL_MYDOCUMENTS, "\\My Games\\Skyrim\\SKSE\\spis_plugin.log");
-		_MESSAGE("Opened new log");
-
-		ExtraContainerChanges * intermContREFCasted = static_cast<ExtraContainerChanges*>(ContainerREF->extraData.GetByType(kExtraData_ContainerChanges));
-		_MESSAGE("1");
-
-		ExtraContainerChanges::EntryData * newEntryData = ExtraContainerChanges::EntryData::Create(FormToSplit, 0); _MESSAGE("2");
-		ExtraContainerChanges::EntryDataList * tempExtraDataList;// = ExtraContainerChanges::EntryDataList::Create();
-		tempExtraDataList = intermContREFCasted->data->objList; _MESSAGE("3");
-		_MESSAGE("Casted 'n declared");
-
-		tempExtraDataList->Push(newEntryData);
-		_MESSAGE("Pused newEntryData to tempExtraDataList");
-
-		intermContREFCasted->data->objList = tempExtraDataList;
-		_MESSAGE("Set intermContR to tempXDL");
-
-		ContainerREF->extraData.Add(kExtraData_ContainerChanges, intermContREFCasted);
-		_MESSAGE("Using add method from skaar");
-		_MESSAGE("pro'ly didn't crash if you see this (yay)");
-
-	};*/
-
-	/*void spisDebug(StaticFunctionTag *base, TESObjectREFR * contRef, TESObjectREFR * ContainerREF2, TESObjectWEAP * Weapon, EnchantmentItem * Enchant)
-	{
-		//gLog.OpenRelative(CSIDL_MYDOCUMENTS, "\\My Games\\Skyrim\\SKSE\\spis_plugin.log");
-
-		for (UInt32 n = 1; n < 5; n++)
-		{
-			//_MESSAGE("-------run: %d--------", n);
-			ExtraContainerChanges * pToContRefExC = static_cast<ExtraContainerChanges*>(contRef->extraData.GetByType(kExtraData_ContainerChanges));
-			if (!pToContRefExC){ return; };
-			EntryDataList * pToContRefExCEDL = pToContRefExC->data->objList;
-			if (!pToContRefExCEDL){ return; };
-
-			ExtraContainerChanges::EntryData * tpEntryDataUnst = ExtraContainerChanges::EntryData::Create(Weapon, 1);
-
-			/*ExtraEnchantment * tpxEnch = ExtraEnchantment::Create();
-
-			tpxEnch->enchant = Enchant;
-			tpxEnch->maxCharge = 0;
-
-			BaseExtraList * npBaseExtraList;
-			npBaseExtraList->Add(kExtraData_Charge, tpxEnch);
-
-			tpEntryDataUnst->extendDataList->Push(npBaseExtraList);
-
-			/*BaseExtraList * tpBEL = pToContRefExCEDL->GetNthItem(0)->extendDataList->GetNthItem(0); _MESSAGE(".");
-			tpEntryDataUnst->extendDataList->Push(tpBEL); _MESSAGE(".");
-			
-			if (tpEntryDataUnst->extendDataList->GetNthItem(0)->HasType(kExtraData_Charge))
-			{
-				_MESSAGE("Has Charge");
-				_MESSAGE("has charge extraData: %d", tpEntryDataUnst->extendDataList->GetNthItem(0)->HasType(kExtraData_Charge));
-				ExtraCharge* xCharge = static_cast<ExtraCharge*>(tpEntryDataUnst->extendDataList->GetNthItem(0)->GetByType(kExtraData_Charge));
-				xCharge->charge = n;
-				_MESSAGE("charge: %d, n: %d", xCharge->charge, n);
-			}
-			else
-			{
-				_MESSAGE("Doesn't have charge");
-				ExtraCharge * tpExtraCharge = ExtraCharge::Create(); _MESSAGE(".");
-
-				tpExtraCharge->charge = n; _MESSAGE(".");
-				_MESSAGE("n value: %d", n);
-				_MESSAGE("charge value: %d", tpExtraCharge->charge);
-				tpEntryDataUnst->extendDataList->GetNthItem(0)->Add(kExtraData_Charge, tpExtraCharge); _MESSAGE("Just invoked add with the charge extradata");
-			}
-			
-			pToContRefExCEDL->Push(tpEntryDataUnst); //_MESSAGE(".");
-
-			/*_MESSAGE("trying to change charge value in post");
-			xCharge->count = 10.0;
-			_MESSAGE("if worked, vale should be 10: %d", xCharge->count);
-		}
-		//boy that was some smooooooooth code
-		/*_MESSAGE("1");
-		ExtraCount * tpExtraCount = ExtraCount::Create();
-		_MESSAGE("2");
-		tpExtraCount->count = 1;
-		_MESSAGE("3");
-		pToContRefExCEDL->GetNthItem(0)->extendDataList->GetNthItem(0)->Add(kExtraData_Count, tpExtraCount);
-		_MESSAGE("4... It didn't crash. What?");
-
-	};*/
-
-	/*DurabilityTracker::DurabilityTracker()
-	{
-		WrappedEntries->
-	}*/
+	
 	
 	//global tracker, created at runtime
 
@@ -129,75 +29,6 @@ namespace plugin_spis
 	bool isInitialized = false;
 
 	//durabilitytracker function defines, some are deprecated and commented (because I'm a code hoarder)
-	
-	/*void DurabilityTracker::WrapEntries(TESObjectREFR * contRef)
-	{
-		ExtraContainerChanges * pToContRefExC = static_cast<ExtraContainerChanges*>(contRef->extraData.GetByType(kExtraData_ContainerChanges));
-		if (!pToContRefExC){ return; };
-		EntryDataList * pToContRefExCEDL = pToContRefExC->data->objList;
-		if (!pToContRefExCEDL){ return; };
-
-		UInt32 n = 0;
-		
-		while (pToContRefExCEDL->GetNthItem(n))
-		{
-			DurabilityEntry * tEntry = new DurabilityEntry(contRef, pToContRefExCEDL->GetNthItem(n), 100);
-			tEntry->indexOfItemInList = n;
-			WrappedEntries->push_back(tEntry);
-			n++;
-		}
-	}
-
-	DurabilityTracker::DurabilityEntry * DurabilityTracker::GetEntryWithTypeAndLowestDurability(TESForm * type, TESObjectREFR * contRef)
-	{
-		ExtraContainerChanges * pToContRefExC = static_cast<ExtraContainerChanges*>(contRef->extraData.GetByType(kExtraData_ContainerChanges));
-		if (!pToContRefExC){ return nullptr; };
-		EntryDataList * pToContRefExCEDL = pToContRefExC->data->objList;
-		if (!pToContRefExCEDL){ return nullptr; };
-
-		DurabilityEntry * tLowest; //declare outside of scope
-
-		//get first
-		for (UInt32 n = 0; n < WrappedEntries->size(); n++)
-		{
-			if ((*WrappedEntries)[n]->pEntryData->type == type && (*WrappedEntries)[n]->owner == contRef)
-			{
-				tLowest = (*WrappedEntries)[n];
-				break;
-			}
-		}
-		
-		//find lowest
-		for (UInt32 n = 0; n < WrappedEntries->size(); n++)
-			if ((*WrappedEntries)[n]->owner == contRef && (*WrappedEntries)[n]->pEntryData->type == type)
-			{
-				if ( (*WrappedEntries)[n]->GetDurability() < tLowest->GetDurability() && pToContRefExCEDL->GetNthItem(n)->countDelta != 0)
-				{
-					tLowest = (*WrappedEntries)[n];
-				}
-			}
-		if (tLowest){ return tLowest; }
-		else{ return nullptr; } //returns this if none exist in current container, hopefully this doesn't crash anything
-	}
-	
-	//void DurabilityTracker::AddDurabilityEntry(DurabilityEntry * entry)
-	//{
-
-	//}
-
-	void DurabilityTracker::RemoveEntryWithTypeAndLowestDurability(TESForm * type, TESObjectREFR * contRef)
-	{
-		ExtraContainerChanges * pToContRefExC = static_cast<ExtraContainerChanges*>(contRef->extraData.GetByType(kExtraData_ContainerChanges));
-		if (!pToContRefExC){ return; };
-		EntryDataList * pToContRefExCEDL = pToContRefExC->data->objList;
-		if (!pToContRefExCEDL){ return; };
-
-		UInt32 tUnchecked = GetEntryWithTypeAndLowestDurability(type, contRef)->indexOfItemInList;
-
-		if (!tUnchecked){ return; }
-
-		pToContRefExCEDL->GetNthItem(tUnchecked)->countDelta = 0;
-	}*/
 
 	DurabilityTracker::DurabilityTracker()
 	{
@@ -618,108 +449,7 @@ namespace plugin_spis
 		virtual void Invoke(Args * args)
 		{
 			_MESSAGE("_DEBUG_PREF_SCDG_invoked");
-			/*DurabilityTracker::ContainerValue entries;
-			GFxValue* entriesArray = &(args->args[0]);
-			GFxValue currentElement;
-			GFxValue lastElement;
-			GFxValue currentId;
-			GFxValue lastId;
-			UInt32 currentIndex = 0;
-			bool equippedRset = false;
-			bool equippedLset = false;
-			_MESSAGE("_DEBUG_PREF_SCDG_1");
-			//GFxValue* out_array = &(args->args[1]); //idk, before it was nagging me, so maybe this works? I'm the only one that has to deal with it so w/e
-			//GFxValue* tempObj = &(args->args[2]);
-			//GFxValue* tempNum = &(args->args[3]);
-			//GFxValue* tempBool = &(args->args[4]);
-			//send maxdur in array
-			/*for (UInt32 i = 0; i < entries.size(); i++)
-			{
-				entries[i].first
-				tempObj->SetMember("maxDurability", );
-				out_array->PushBack(tempNum);
-			}
-			//first run, just unrolling the loop a little so no extra if's needed
-			entriesArray->GetElement(0, &currentElement); _MESSAGE("_DEBUG_PREF_SCDG_2");
-			currentElement.GetMember("formId", &currentId); _MESSAGE("_DEBUG_PREF_SCDG_3");
-			if ((*globalDurabilityTracker->ContainerEntries)[globalCurrentContainer->GetContainer()].count(LookupFormByID( UInt32( currentId.GetNumber() ) ))); //make sure that item exists w/ count
-			{
-				entries = globalDurabilityTracker->FindDurabilityContainer(globalCurrentContainer->GetContainer(), UInt32(currentId.GetNumber())); _MESSAGE("_DEBUG_PREF_SCDG_4");
-				RegisterNumber(&currentElement, "maxDurability", double(entries.Durabilities[currentIndex].first)); _MESSAGE("_DEBUG_PREF_SCDG_5");
-				RegisterNumber(&currentElement, "durability", double(entries.Durabilities[currentIndex].second)); _MESSAGE("_DEBUG_PREF_SCDG_5.1");
-			}
-
-			for (UInt32 i = 1; i < entriesArray->GetArraySize(); i++)
-			{
-				lastElement = currentElement; _MESSAGE("_DEBUG_PREF_SCDG_6,%d", i);
-				entriesArray->GetElement(i, &currentElement); _MESSAGE("_DEBUG_PREF_SCDG_7,%d", i);
-
-				lastElement.GetMember("formId", &lastId); _MESSAGE("_DEBUG_PREF_SCDG_8,&d", i);
-				currentElement.GetMember("formId", &currentId); _MESSAGE("_DEBUG_PREF_SCDG_9,%d", i);
-
-				entries = globalDurabilityTracker->FindDurabilityContainer(globalCurrentContainer->GetContainer(), UInt32(currentId.GetNumber())); _MESSAGE("_DEBUG_PREF_SCDG_10,%d", i);
-
-				if ((*globalDurabilityTracker->ContainerEntries)[globalCurrentContainer->GetContainer()].count(LookupFormByID(UInt32(currentId.GetNumber()))))
-				{
-					if (lastId.GetNumber() == currentId.GetNumber())
-					{
-						currentIndex++; _MESSAGE("_DEBUG_PREF_SCDG_11,%d", i);
-					}
-					else
-					{
-						currentIndex = 0; _MESSAGE("_DEBUG_PREF_SCDG_12,%d", i);
-					}
-
-					_MESSAGE("_DEBUG_PREF_SCDG_12.1,%d, arraysize:%d, index:%d", i, entries.Durabilities.size(), currentIndex);
-					_MESSAGE("_DEBUG_PREF_SCDG_12.2,%d, lastid:%d, currentid:%d", i, lastId.GetNumber(), currentId.GetNumber());
-
-					RegisterNumber(&currentElement, "maxDurability", double(entries.Durabilities[currentIndex].first)); _MESSAGE("_DEBUG_PREF_SCDG_13,%d", i);
-					RegisterNumber(&currentElement, "durability", double(entries.Durabilities[currentIndex].second)); _MESSAGE("_DEBUG_PREF_SCDG_14,%d", i);
-
-					/*if (std::get<0>(entries.EquippedState) == entries.Durabilities[currentIndex].second)
-					{
-						if (!equippedRset)
-						{
-							GFxValue * equipState; _MESSAGE("_DEBUG_PREF_SCDG_15,%d", i);
-							currentElement.GetMember("equipState", equipState); _MESSAGE("_DEBUG_PREF_SCDG_16,%d", i);
-							equipState->SetNumber(double(3)); _MESSAGE("_DEBUG_PREF_SCDG_17,%d", i);
-							currentElement.SetMember("equipState", equipState); _MESSAGE("_DEBUG_PREF_SCDG_18,%d", i);
-							equippedRset = true; _MESSAGE("_DEBUG_PREF_SCDG_19,%d", i);
-						}
-						/*else if (!equippedLset)
-						{
-							GFxValue * equipState;
-							currentElement->GetMember("equipState", equipState);
-							equipState->SetNumber(double(2));
-							currentElement->SetMember("equipState", equipState);
-							equippedLset = true;
-						}
-					}
-					else if (std::get<2>(entries.EquippedState) == entries.Durabilities[currentIndex].second)
-					{
-						/*if (!equippedRset)
-						{
-							GFxValue * equipState;
-							currentElement->GetMember("equipState", equipState);
-							equipState->SetNumber(double(3));
-							currentElement->SetMember("equipState", equipState);
-							equippedRset = true;
-						}
-						if (!equippedLset)
-						{
-							GFxValue * equipState; _MESSAGE("_DEBUG_PREF_SCDG_20,&d", i);
-							currentElement.GetMember("equipState", equipState); _MESSAGE("_DEBUG_PREF_SCDG_21,&d", i);
-							equipState->SetNumber(double(2)); _MESSAGE("_DEBUG_PREF_SCDG_22,&d", i);
-							currentElement.SetMember("equipState", equipState); _MESSAGE("_DEBUG_PREF_SCDG_23,&d", i);
-							equippedLset = true; _MESSAGE("_DEBUG_PREF_SCDG_24,&d", i);
-						}
-					}
-				}
-				else
-				{
-					currentIndex = 0; _MESSAGE("_DEBUG_PREF_SCDG_25,&d", i);
-				}
-			}*/
+			
 			GFxValue * obj		= &args->args[0];
 			GFxValue * index	= &args->args[1];
 			GFxValue   formId;
@@ -763,7 +493,7 @@ namespace plugin_spis
 		}
 	};
 
-	//SERIALIZATION TES ########################
+	//SERIALIZATION TESTS ########################
 	void Serialization_Revert(SKSESerializationInterface * intfc)
 	{
 		_MESSAGE("revert");
@@ -775,60 +505,24 @@ namespace plugin_spis
 	{
 		_MESSAGE("_DEBUG_PREF_SAVE_invoked");
 		SerializeGnrlContainerMap(globalDurabilityTracker->ContainerEntries, intfc);
+		intfc->OpenRecord(kTypeInitialized, 0);
+		intfc->WriteRecordData(&isInitialized, sizeof(bool));
 	}
-	/*{
-		_MESSAGE("save");
-
-		if (intfc->OpenRecord('DATA', kSerializationDataVersion))
-		{
-			char	kData[] = "hello world";
-
-			intfc->WriteRecordData(kData, sizeof(kData));
-		}
-	}*/
 
 	void Serialization_Load(SKSESerializationInterface * intfc)
 	{
-		_MESSAGE("load");
-
-		UInt32	type;
-		UInt32	version;
-		UInt32	length;
-		bool	error = false;
-
-		while (!error && intfc->GetNextRecordInfo(&type, &version, &length))
+		UInt32 type, ver, len;
+		bool ii;
+		while (intfc->GetNextRecordInfo(&type, &ver, &len))
 		{
-			switch (type)
+			switch(type)
 			{
-			case 'DATA':
-			{
-				if (version == kSerializationDataVersion)
-				{
-					if (length)
-					{
-						char	* buf = new char[length];
-
-						intfc->ReadRecordData(buf, length);
-						buf[length - 1] = 0;
-
-						_MESSAGE("read data: %s", buf);
-					}
-					else
-					{
-						_MESSAGE("empty data?");
-					}
-				}
-				else
-				{
-					error = true;
-				}
-			}
-			break;
-
-			default:
-				_MESSAGE("unhandled type %08X", type);
-				error = true;
-				break;
+			case kTypeGnrlMapCount:
+				*(globalDurabilityTracker->ContainerEntries) = UnserializeGnrlContianerMap(intfc);
+			
+			case kTypeInitialized:
+				intfc->ReadRecordData(&ii, sizeof(bool));
+				isInitialized = ii;
 			}
 		}
 	}

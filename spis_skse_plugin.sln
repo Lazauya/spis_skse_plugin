@@ -7,7 +7,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "skse", "skse\skse.vcxproj",
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "common", "common\common.vcxproj", "{20C6411C-596F-4B85-BE4E-8BC91F59D8A6}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "skaar", "skaar_skse_plugin\skaar_skse_plugin.vcxproj", "{F0CF443B-B64A-489E-A826-6924FECB0F4E}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "spis", "spis_skse_plugin\spis_skse_plugin.vcxproj", "{F0CF443B-B64A-489E-A826-6924FECB0F4E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
