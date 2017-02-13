@@ -6,7 +6,7 @@ import UI
 
 Actor Property PlayerREF auto
 
-Event OnInit()
+Event OnLoad()
 	If(plugin_spis.InitializeDurabilityTracker())
 		Debug.Trace("_DEBUG_PREF_DTRK_Loaded/Initialized")
 		RegisterForMenu("TweenMenu")

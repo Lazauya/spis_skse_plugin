@@ -32,9 +32,9 @@ namespace plugin_spis
 
 	DurabilityTracker::DurabilityTracker()
 	{
-		_MESSAGE("_DEBUG_PREF_INIT_init called");
+		//_MESSAGE("_DEBUG_PREF_INIT_init called");
 		GroundEntries = new std::unordered_map< GroundKey, GroundValue, GroundKeyHash >;
-		_MESSAGE("_DEBUG_PPEF_INIT_ground entries just declared");
+		//_MESSAGE("_DEBUG_PPEF_INIT_ground entries just declared");
 		ContainerEntries = new std::unordered_map < ContainerKey, std::unordered_map<TESForm*, ContainerValue>, ContainerKeyHash >;
 	}
 
@@ -102,7 +102,12 @@ namespace plugin_spis
 
 	bool DurabilityTracker::AddEntry(UInt8 space, TESObjectREFR * container, TESForm * item, TESObjectREFR * groundItem, UInt32 amount, UInt32 durability, UInt32 maxDurability)
 	{
-		_MESSAGE("_DEBUG_PREF_ADEN_called");
+		if (!amount)
+		{
+			return true;
+		}
+
+		//_MESSAGE("_DEBUG_PREF_ADEN_called");
 		ContainerKey tempContKey(container);
 		//GroundKey tempGroundKey(groundItem);
 		switch (space)
@@ -112,74 +117,74 @@ namespace plugin_spis
 				if (!pToContRefExC){ return false; };
 				EntryDataList * pToContRefExCEDL = pToContRefExC->data->objList;
 				if (!pToContRefExCEDL){ return false; };*/
-				_MESSAGE("_DEBUG_PREF_ADEN_1");
+				//_MESSAGE("_DEBUG_PREF_ADEN_1");
 				//populates structure if not found
 
 				if (ContainerEntries->count(tempContKey))
 				{
-					_MESSAGE("_DEBUG_PREF_ADEN_2");
+					//_MESSAGE("_DEBUG_PREF_ADEN_2");
 					if ((*ContainerEntries)[tempContKey].count(item))
 					{
-						_MESSAGE("_DEBUG_PREF_ADEN_3");
+						//_MESSAGE("_DEBUG_PREF_ADEN_3");
 						//THIS IS A PLACEHOLDER, NOT REPRESENTING FINALNESS
 						(*ContainerEntries)[tempContKey][item].Durabilities.push_back(ContainerValue::DurabilityEntry(maxDurability, durability));
 					}
 					else
 					{
-						_MESSAGE("_DEBUG_PREF_ADEN_4");
+						//_MESSAGE("_DEBUG_PREF_ADEN_4");
 						(*ContainerEntries)[tempContKey].insert(std::pair<TESForm*, ContainerValue>(item, ContainerValue(item, 1)));
 
 						if ((*ContainerEntries)[tempContKey].count(item))
 						{
-							_MESSAGE("_DEBUG_PREF_ADEN_5");
+							//_MESSAGE("_DEBUG_PREF_ADEN_5");
 							//THIS IS A PLACEHOLDER, NOT REPRESENTING FINALNESS
 							(*ContainerEntries)[tempContKey][item].Durabilities.push_back(ContainerValue::DurabilityEntry(maxDurability, durability));
 							(*ContainerEntries)[tempContKey][item].count += amount;
 						}
 						else
 						{
-							_MESSAGE("_DEBUG_PREF_ADEN_6");
+							//_MESSAGE("_DEBUG_PREF_ADEN_6");
 							return false;
 						}
 					}
 				}
 				else
 				{
-					_MESSAGE("_DEBUG_PREF_ADEN_7");
+					//_MESSAGE("_DEBUG_PREF_ADEN_7");
 					std::unordered_map<TESForm*, ContainerValue> tempContEntVal;
-					_MESSAGE("_DEBUG_PREF_ADEN_7.1");
+					//_MESSAGE("_DEBUG_PREF_ADEN_7.1");
 					// ### uncompacted code, probably temporary
 					//tempContEntVal.insert(std::pair<TESForm*, ContainerValue>(item, ContainerValue(container, item))); //original statement
 						ContainerValue t1(item, 1);
-						_MESSAGE("_DEBUG_PREF_ADEN_7.1.1");
+						//_MESSAGE("_DEBUG_PREF_ADEN_7.1.1");
 						std::pair<TESForm*, ContainerValue> t2(item, t1);
-						_MESSAGE("_DEBUG_PREF_ADEN_7.1.2");
+						//_MESSAGE("_DEBUG_PREF_ADEN_7.1.2");
 						tempContEntVal.insert(t2);
-						_MESSAGE("_DEBUG_PREF_ADEN_7.1.3");
+						//_MESSAGE("_DEBUG_PREF_ADEN_7.1.3");
 					// ### end uncompacted
-					_MESSAGE("_DEBUG_PREF_ADEN_7.2");
+					//_MESSAGE("_DEBUG_PREF_ADEN_7.2");
 					ContainerEntries->insert(std::pair<ContainerKey, std::unordered_map<TESForm*, ContainerValue> >(tempContKey, tempContEntVal));
-					_MESSAGE("_DEBUG_PREF_ADEN_7.3");
+					//_MESSAGE("_DEBUG_PREF_ADEN_7.3");
 					if ((*ContainerEntries)[tempContKey].count(item))
 					{
-						_MESSAGE("_DEBUG_PREF_ADEN_8");
+						//_MESSAGE("_DEBUG_PREF_ADEN_8");
 						//THIS IS A PLACEHOLDER, NOT REPRESENTING FINALNESS
 						(*ContainerEntries)[tempContKey][item].Durabilities.push_back(ContainerValue::DurabilityEntry(maxDurability, durability));
 					}
 					else
 					{
-						_MESSAGE("_DEBUG_PREF_ADEN_9");
+						//_MESSAGE("_DEBUG_PREF_ADEN_9");
 						(*ContainerEntries)[tempContKey].insert(std::pair<TESForm*, ContainerValue>(item, ContainerValue(item, 1)));
 
 						if ((*ContainerEntries)[tempContKey].count(item))
 						{
-							_MESSAGE("_DEBUG_PREF_ADEN_10");
+							//_MESSAGE("_DEBUG_PREF_ADEN_10");
 							//THIS IS A PLACEHOLDER, NOT REPRESENTING FINALNESS
 							(*ContainerEntries)[tempContKey][item].Durabilities.push_back(ContainerValue::DurabilityEntry(maxDurability, durability));
 						}
 						else
 						{
-							_MESSAGE("_DEBUG_PREF_ADEN_11");
+							//_MESSAGE("_DEBUG_PREF_ADEN_11");
 							return false;
 						}
 					}
@@ -205,6 +210,11 @@ namespace plugin_spis
 
 	bool DurabilityTracker::RemoveEntry(UInt8 space, TESObjectREFR * container, TESForm * item, TESObjectREFR * groundItem, UInt32 amount, UInt8 removeType, UInt32 durability)
 	{
+		if (!amount)
+		{
+			return true;
+		}
+
 		ContainerKey tempContKey(container);
 		GroundKey tempGroundKey(groundItem);
 
@@ -243,6 +253,11 @@ namespace plugin_spis
 
 	bool DurabilityTracker::MoveEntry(UInt8 space, TESObjectREFR * containerFrom, TESObjectREFR * containerTo, TESForm * item, TESObjectREFR * groundItem, UInt32 amount, UInt32 durability)
 	{
+		if (!amount)
+		{
+			return true;
+		}
+
 		bool c1 = false;
 		bool c2 = false;
 		UInt32 t_maxdurabil;
@@ -286,6 +301,7 @@ namespace plugin_spis
 			if (pContainer->entries[i]->form->IsWeapon() || pContainer->entries[i]->form->IsArmor())
 				for (UInt32 j = 0; j < pContainer->entries[i]->count; j++)
 				{
+					_MESSAGE("_DEBUG_PREF_WETC_%d,%d", j, pContainer->entries[i]->form->formID);
 					AddEntry(0, container, pContainer->entries[i]->form, nullptr, 1, LookupDurabilityInfo(pContainer->entries[i]->form), LookupDurabilityInfo(pContainer->entries[i]->form));
 				}
 		}
@@ -303,6 +319,7 @@ namespace plugin_spis
 				{
 					for (UInt32 j = 0; j < pToContRefExC->data->objList->GetNthItem(i)->countDelta; j++)
 					{
+						_MESSAGE("_DEBUG_PREF_WEAE_%d,%d", j, pContainer->entries[i]->form->formID);
 						AddEntry(0, container, pToContRefExC->data->objList->GetNthItem(i)->type, nullptr, 1, LookupDurabilityInfo(pToContRefExC->data->objList->GetNthItem(i)->type), LookupDurabilityInfo(pToContRefExC->data->objList->GetNthItem(i)->type));
 					}
 				}
@@ -310,6 +327,7 @@ namespace plugin_spis
 				{
 					for (UInt32 j = 0; j < pToContRefExC->data->objList->GetNthItem(i)->countDelta; j++)
 					{
+						_MESSAGE("_DEBUG_PREF_WERE_%d,%d", j, pContainer->entries[i]->form->formID);
 						RemoveEntry(0, container, pToContRefExC->data->objList->GetNthItem(i)->type, nullptr, 1, 1, 0);
 					}
 				}
@@ -344,25 +362,25 @@ namespace plugin_spis
 
 	UInt32 LookupDurabilityInfo(TESForm* item)
 	{
-		//_MESSAGE("_DEBUG_PREF_LODI_called function");
-		//_MESSAGE("_DEBUG_PREF_LODI_%d", item->formID);
+		////_MESSAGE("_DEBUG_PREF_LODI_called function");
+		////_MESSAGE("_DEBUG_PREF_LODI_%d", item->formID);
 		std::ifstream DurabilitiesInfo("durabilities.txt");
 		std::string foundLine;
 		UInt32 durability = 0xFFFFFFFF;
 
 		std::string tempFindString = int_to_hex(item->formID);
 
-		//_MESSAGE("_DEBUG_PREF_LODI_%s", tempFindString.c_str());
+		////_MESSAGE("_DEBUG_PREF_LODI_%s", tempFindString.c_str());
 
 		while (std::getline(DurabilitiesInfo, foundLine))
 		{
-			//_MESSAGE("_DEBUG_PREF_LODI_%s", foundLine.c_str());
+			////_MESSAGE("_DEBUG_PREF_LODI_%s", foundLine.c_str());
 			if (!foundLine.find(tempFindString))
 			{
 				std::stringstream ss;
 				ss << std::hex << foundLine.substr(10, 8);
 				ss >> durability;
-				//_MESSAGE("_DEBUG_PREF_LODI_found durability: %d", durability);
+				////_MESSAGE("_DEBUG_PREF_LODI_found durability: %d", durability);
 			}
 		}
 		DurabilitiesInfo.close();
@@ -401,11 +419,11 @@ namespace plugin_spis
 
 	void PrintFound(StaticFunctionTag *base, UInt32 findType, TESObjectREFR * container, TESForm * item, UInt32 durability)
 	{
-		_MESSAGE("_DEBUG_PREF_PFND_called");
+		//_MESSAGE("_DEBUG_PREF_PFND_called");
 		SInt32 found = globalDurabilityTracker->FindEntryContainer(findType, container, item, durability);
-		_MESSAGE("_DEBUG_PREF_PFND_found dur: %d", (*(globalDurabilityTracker->ContainerEntries))[container][item].Durabilities[found].second);
+		//_MESSAGE("_DEBUG_PREF_PFND_found dur: %d", (*(globalDurabilityTracker->ContainerEntries))[container][item].Durabilities[found].second);
 		UInt32 np = LookupDurabilityInfo(item);
-		_MESSAGE("_DEBUG_PREF_PFND_np:%d", np);
+		//_MESSAGE("_DEBUG_PREF_PFND_np:%d", np);
 	}
 
 	UInt32 GetCurrentDurability(StaticFunctionTag *base)
@@ -425,17 +443,17 @@ namespace plugin_spis
 	{
 		virtual void Invoke(Args * args)
 		{
-			_MESSAGE("_DEBUG_PREF_SCDG_invoked");
+			//_MESSAGE("_DEBUG_PREF_SCDG_invoked");
 			
 			GFxValue * obj		= &args->args[0];
 			GFxValue * index	= &args->args[1];
 			GFxValue   formId;
 			obj->GetMember("formId", &formId);
-			_MESSAGE("_DEBUG_PREF_SCDG_formId:%d", UInt32(formId.GetNumber()));
+			//_MESSAGE("_DEBUG_PREF_SCDG_formId:%d", UInt32(formId.GetNumber()));
 			// ### UNCOMPRESSED CODE
 			UInt32 tid = UInt32(formId.GetNumber());
 			TESObjectREFR* cc = globalCurrentContainer->GetContainer();
-			//_MESSAGE("_DEBUG_PREF_SCDG_ccfId:%d", cc->baseForm->formID);
+			////_MESSAGE("_DEBUG_PREF_SCDG_ccfId:%d", cc->baseForm->formID);
 			// ### UNCOMPRESSED CODE END
 			if ((*globalDurabilityTracker->ContainerEntries)[cc].count(LookupFormByID(tid)))
 			{
@@ -443,10 +461,10 @@ namespace plugin_spis
 
 				UInt32 ind = index->GetNumber();
 
-				_MESSAGE("_DEBUG_PREF_SCDG_formId:%d", UInt32(formId.GetNumber()));
-				_MESSAGE("_DEBUG_PREF_SCDG_ind:%d", ind);
-				_MESSAGE("_DEBUG_PREF_SCDG_md:%d", entries.Durabilities[ind].first);
-				_MESSAGE("_DEBUG_PREF_SCDG_d:%d", entries.Durabilities[ind].second);
+				//_MESSAGE("_DEBUG_PREF_SCDG_formId:%d", UInt32(formId.GetNumber()));
+				//_MESSAGE("_DEBUG_PREF_SCDG_ind:%d", ind);
+				//_MESSAGE("_DEBUG_PREF_SCDG_md:%d", entries.Durabilities[ind].first);
+				//_MESSAGE("_DEBUG_PREF_SCDG_d:%d", entries.Durabilities[ind].second);
 
 				RegisterNumber(obj, "maxDurability", entries.Durabilities[ind].first);
 				RegisterNumber(obj, "durability", entries.Durabilities[ind].second);
@@ -470,7 +488,6 @@ namespace plugin_spis
 		}
 	};
 
-	//SERIALIZATION TESTS ########################
 	void Serialization_Revert(SKSESerializationInterface * intfc)
 	{
 		_MESSAGE("revert");
@@ -480,7 +497,7 @@ namespace plugin_spis
 
 	void Serialization_Save(SKSESerializationInterface * intfc)
 	{
-		_MESSAGE("_DEBUG_PREF_SAVE_invoked");
+		//_MESSAGE("_DEBUG_PREF_SAVE_invoked");
 		SerializeGnrlContainerMap(globalDurabilityTracker->ContainerEntries, intfc);
 		SerializeGroundMap(globalDurabilityTracker->GroundEntries, intfc);
 		intfc->OpenRecord(kTypeInitialized, 0);
@@ -489,25 +506,25 @@ namespace plugin_spis
 
 	void Serialization_Load(SKSESerializationInterface * intfc)
 	{
-		_MESSAGE("_DEBUG_PREF_LOAD_invoked");
+		//_MESSAGE("_DEBUG_PREF_LOAD_invoked");
 		UInt32 type, ver, len;
 		bool ii;
 		while (intfc->GetNextRecordInfo(&type, &ver, &len))
 		{
-			_MESSAGE("_DEBUG_PREF_LOAD_1");
+			//_MESSAGE("_DEBUG_PREF_LOAD_1");
 			switch(type)
 			{
 			case kTypeContainerMap:
-				_MESSAGE("_DEBUG_PREF_LOAD_2");
+				//_MESSAGE("_DEBUG_PREF_LOAD_2");
 				*(globalDurabilityTracker->ContainerEntries) = UnserializeGnrlContianerMap(intfc);
 				break;
 			case kTypeGroundMap:
-				_MESSAGE("_DEBUG_PREF_LOAD_2.5");
+				//_MESSAGE("_DEBUG_PREF_LOAD_2.5");
 				
 				*(globalDurabilityTracker->GroundEntries) = UnserializeGroundMap(intfc);
 				break;
 			case kTypeInitialized:
-				_MESSAGE("_DEBUG_PREF_LOAD_3");
+				//_MESSAGE("_DEBUG_PREF_LOAD_3");
 				intfc->ReadRecordData(&ii, sizeof(bool));
 				isInitialized = ii;
 				break;
@@ -515,25 +532,10 @@ namespace plugin_spis
 		}
 	}
 
-	//endtests
-
 	//registry functions
 
 	bool RegisterFuncsPapyrus(VMClassRegistry* registry)
 	{
-		/*
-		//registry->RegisterFunction(new NativeFunction2 <StaticFunctionTag, void, TESObjectREFR*, TESForm*>("RearrangeExtraContChanges", "plugin_spis", plugin_spis::RearrangeExtraContChanges, registry));
-
-		//registry->RegisterFunction(new NativeFunction4 <StaticFunctionTag, void, TESObjectREFR*, TESObjectREFR*, TESObjectWEAP*, EnchantmentItem*>("spisDebug", "plugin_spis", plugin_spis::spisDebug, registry));
-
-		//registry->RegisterFunction(new NativeFunction1 <StaticFunctionTag, void, TESObjectREFR*>("UpdateContainer", "plugin_spis", plugin_spis::UpdateContainer, registry));
-
-		//registry->RegisterFunction(new NativeFunction1 <StaticFunctionTag, void, TESObjectREFR*>("GetContainerReady", "plugin_spis", plugin_spis::GetContainerReady, registry));
-
-		//registry->RegisterFunction(new NativeFunction1 <StaticFunctionTag, void, BSFixedString>("outputToOpenDebugLog", "plugin_spis", plugin_spis::outputToOpenDebugLog, registry));
-
-		//registry->RegisterFunction(new NativeFunction1 <StaticFunctionTag, void, TESObjectREFR*>("MarkTESContainerZero", "plugin_spis", plugin_spis::MarkTESContainerZero, registry));
-		*/
 		registry->RegisterFunction(new NativeFunction0 <StaticFunctionTag, bool>("InitializeDurabilityTracker", "plugin_spis", plugin_spis::InitializeDurabilityTracker, registry));
 
 		registry->RegisterFunction(new NativeFunction7 <StaticFunctionTag, bool, UInt32, TESObjectREFR*, TESForm*, TESObjectREFR*, UInt32, UInt32, UInt32>("AddEntry", "plugin_spis", plugin_spis::AddEntry, registry));

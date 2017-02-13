@@ -174,8 +174,9 @@ namespace plugin_spis
 			{
 				_MESSAGE("_DEBUG_PREF_CTKH_invoked");
 				const TESObjectREFR* ttorp = k.getContainerRef();
-				_MESSAGE("_DEBUG_PREF_CTKH_gotconstval, refcount:%d", ttorp->handleRefObject.GetRefCount());
-				return ttorp->handleRefObject.GetRefCount();
+				//_MESSAGE("_DEBUG_PREF_CTKH_gotconstval, refcount:%d", ttorp->CreateRefHandle());
+				const UInt32 outhash = const_cast<TESObjectREFR*>(ttorp)->CreateRefHandle();
+				return outhash;
 			}
 		};
 
@@ -185,7 +186,9 @@ namespace plugin_spis
 			{
 
 				const TESObjectREFR* ttorp = k.getObjectRef();
-				return ttorp->handleRefObject.GetRefCount();
+				//_MESSAGE("_DEBUG_PREF_CTKH_gotconstval, refcount:%d", ttorp->CreateRefHandle());
+				const UInt32 outhash = const_cast<TESObjectREFR*>(ttorp)->CreateRefHandle();
+				return outhash;
 			}
 		};
 
