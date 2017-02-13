@@ -127,7 +127,7 @@ namespace plugin_spis
 					else
 					{
 						_MESSAGE("_DEBUG_PREF_ADEN_4");
-						(*ContainerEntries)[tempContKey].insert(std::pair<TESForm*, ContainerValue>(item, ContainerValue(container, item, 1)));
+						(*ContainerEntries)[tempContKey].insert(std::pair<TESForm*, ContainerValue>(item, ContainerValue(item, 1)));
 
 						if ((*ContainerEntries)[tempContKey].count(item))
 						{
@@ -150,7 +150,7 @@ namespace plugin_spis
 					_MESSAGE("_DEBUG_PREF_ADEN_7.1");
 					// ### uncompacted code, probably temporary
 					//tempContEntVal.insert(std::pair<TESForm*, ContainerValue>(item, ContainerValue(container, item))); //original statement
-						ContainerValue t1(container, item, 1);
+						ContainerValue t1(item, 1);
 						_MESSAGE("_DEBUG_PREF_ADEN_7.1.1");
 						std::pair<TESForm*, ContainerValue> t2(item, t1);
 						_MESSAGE("_DEBUG_PREF_ADEN_7.1.2");
@@ -169,7 +169,7 @@ namespace plugin_spis
 					else
 					{
 						_MESSAGE("_DEBUG_PREF_ADEN_9");
-						(*ContainerEntries)[tempContKey].insert(std::pair<TESForm*, ContainerValue>(item, ContainerValue(container, item, 1)));
+						(*ContainerEntries)[tempContKey].insert(std::pair<TESForm*, ContainerValue>(item, ContainerValue(item, 1)));
 
 						if ((*ContainerEntries)[tempContKey].count(item))
 						{
@@ -418,29 +418,6 @@ namespace plugin_spis
 		return globalCurrentDurability->GetMaxDurability();
 	};
 
-	//old, bad stuff, but keeping it around because of nostalgia 
-	/*void MarkTESContainerZero(StaticFunctionTag *base, TESObjectREFR* contRef)
-	{
-		plugin_spis_utils::MarkTESContainerZero(contRef);
-	}
-
-	void outputToOpenDebugLog(StaticFunctionTag *base, BSFixedString msg)
-	{
-		_MESSAGE(msg.data);
-		return;
-	}
-
-	void GetContainerReady(StaticFunctionTag *base, TESObjectREFR* contRef)
-	{
-		plugin_spis_utils::CopyTESContainerContentsToExtraDataUnst(contRef);
-		plugin_spis_utils::MarkTESContainerZero(contRef);
-	}
-
-	void UpdateContainer(StaticFunctionTag *base, TESObjectREFR* contRef)
-	{
-		plugin_spis_utils::UpdateContainer(contRef);
-	}*/
-
 	//UI functions
 	//keeping this here for now so it can interact with globalDurabilityTracker
 	//theres probably a better way to do this, perhaps look back at this later. for now it works
@@ -505,24 +482,35 @@ namespace plugin_spis
 	{
 		_MESSAGE("_DEBUG_PREF_SAVE_invoked");
 		SerializeGnrlContainerMap(globalDurabilityTracker->ContainerEntries, intfc);
+		SerializeGroundMap(globalDurabilityTracker->GroundEntries, intfc);
 		intfc->OpenRecord(kTypeInitialized, 0);
 		intfc->WriteRecordData(&isInitialized, sizeof(bool));
 	}
 
 	void Serialization_Load(SKSESerializationInterface * intfc)
 	{
+		_MESSAGE("_DEBUG_PREF_LOAD_invoked");
 		UInt32 type, ver, len;
 		bool ii;
 		while (intfc->GetNextRecordInfo(&type, &ver, &len))
 		{
+			_MESSAGE("_DEBUG_PREF_LOAD_1");
 			switch(type)
 			{
-			case kTypeGnrlMapCount:
+			case kTypeContainerMap:
+				_MESSAGE("_DEBUG_PREF_LOAD_2");
 				*(globalDurabilityTracker->ContainerEntries) = UnserializeGnrlContianerMap(intfc);
-			
+				break;
+			case kTypeGroundMap:
+				_MESSAGE("_DEBUG_PREF_LOAD_2.5");
+				
+				*(globalDurabilityTracker->GroundEntries) = UnserializeGroundMap(intfc);
+				break;
 			case kTypeInitialized:
+				_MESSAGE("_DEBUG_PREF_LOAD_3");
 				intfc->ReadRecordData(&ii, sizeof(bool));
 				isInitialized = ii;
+				break;
 			}
 		}
 	}

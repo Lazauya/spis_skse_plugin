@@ -1,4 +1,4 @@
-ScriptName DurabilityTrackers Extends Form
+ScriptName DurabilityTrackers Extends ReferenceAlias
 
 import ObjectReference
 import plugin_spis
@@ -6,7 +6,7 @@ import UI
 
 Actor Property PlayerREF auto
 
-Event OnLoad()
+Event OnInit()
 	If(plugin_spis.InitializeDurabilityTracker())
 		Debug.Trace("_DEBUG_PREF_DTRK_Loaded/Initialized")
 		RegisterForMenu("TweenMenu")
@@ -36,13 +36,16 @@ Event OnItemAdded(Form akBaseItem, int aiItemCount, ObjectReference akItemRefere
 EndEvent
 
 Event OnItemRemoved(Form akBaseItem, int aiItemCount, ObjectReference akItemReference, ObjectReference akDestContainer)
+	Debug.Trace("_DEBUG_PREF_DTRK_ItemRemoved")
 	If( (akBaseItem as Weapon) || (akBaseItem as Armor) )
 		If(akDestContainer)
 			If(IsMenuOpen("Container Menu"))
 				plugin_spis.SetCurrentContainer(akDestContainer)
 			EndIf
+			Debug.Trace("_DEBUG_PREF_DTRK_ir1")
 			plugin_spis.MoveEntry(0, (PlayerREF as ObjectReference), akDestContainer, akItemReference, aiItemCount, plugin_spis.GetCurrentDurability())
 		Else
+			Debug.Trace("_DEBUG_PREF_DTRK_ir2")
 			plugin_spis.MoveEntry(3, (PlayerREF as ObjectReference), akDestContainer, akItemReference, aiItemCount, plugin_spis.GetCurrentDurability())
 		EndIf	
 	EndIf

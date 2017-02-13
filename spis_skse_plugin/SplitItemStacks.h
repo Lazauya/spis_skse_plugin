@@ -75,12 +75,6 @@ namespace plugin_spis
 			}
 		};
 
-		/*struct GroundValue
-		{
-			UInt32 maxdurability;
-			UInt32 durability;
-		};*/
-
 		//check DurabilityEntry for specs
 		typedef std::pair<UInt32, UInt32> GroundValue;
 
@@ -105,6 +99,8 @@ namespace plugin_spis
 				cell = ContainerRef->parentCell;
 			}
 
+			//probably irrelevant, found something that makes this obselete
+			/*
 			//need this for serialization, will probably add an extra method for resyncing the actual object ref/cell
 			//whenever player interacts with it. but maybe not.
 			void setContainerKey(NiPoint3* coord, NiPoint3* rot)
@@ -113,7 +109,7 @@ namespace plugin_spis
 				coordinates = coord;
 				rotation = rot;
 				cell = nullptr;
-			}
+			}*/
 
 			TESObjectREFR* getContainerRef() const { return ContainerRef; }
 			NiPoint3 getcoordinates() const { return *coordinates; }
@@ -122,12 +118,13 @@ namespace plugin_spis
 
 			bool operator==(const ContainerKey &other) const
 			{
-				return ((*(this->coordinates)).x) == ((*(other.coordinates)).x) &&
+				/*return ((*(this->coordinates)).x) == ((*(other.coordinates)).x) &&
 					   ((*(this->coordinates)).y) == ((*(other.coordinates)).y) &&
 					   ((*(this->coordinates)).z) == ((*(other.coordinates)).z) &&
 					   ((*(this->rotation)).x)    == ((*(other.rotation)).x)    &&
 					   ((*(this->rotation)).y)    == ((*(other.rotation)).y)    && 
-					   ((*(this->rotation)).z)    == ((*(other.rotation)).z);
+					   ((*(this->rotation)).z)    == ((*(other.rotation)).z);*/
+				return this->ContainerRef == other.ContainerRef;
 			}
 
 			void operator=(const ContainerKey &other)
@@ -138,66 +135,12 @@ namespace plugin_spis
 		
 		struct ContainerValue
 		{
-			ContainerValue(TESObjectREFR* contRef, TESForm * type, UInt32 count) : count(count)
-			{
-				TESContainer* pContainer = nullptr;
-				pBaseForm = contRef->baseForm;
-
-				//ExtraContainerChanges * pToContRefExC = static_cast<ExtraContainerChanges*>(contRef->extraData.GetByType(kExtraData_ContainerChanges));
-
-				//pEntryData = pToContRefExC->data->FindItemEntry(type);
-
-				/*_MESSAGE("_DEBUG_PREF_CNVI_1");
-
-				if (pBaseForm)
-				{
-					_MESSAGE("_DEBUG_PREF_CNVI_2");
-					TESContainer* pContainer = DYNAMIC_CAST(pBaseForm, TESForm, TESContainer);
-					_MESSAGE("_DEBUG_PREF_CNVI_2.1");
-				}
-				else
-				{
-					_MESSAGE("_DEBUG_PREF_CNVI_3");
-					return;
-				}
-
-				_MESSAGE("_DEBUG_PREF_CNVI_4");
-				ExtraContainerChanges * pToContRefExC = static_cast<ExtraContainerChanges*>(contRef->extraData.GetByType(kExtraData_ContainerChanges));
-				_MESSAGE("_DEBUG_PREF_CNVI_5");
-				if (!pToContRefExC){ return; };
-				_MESSAGE("_DEBUG_PREF_CNVI_6");
-				ExtraContainerChanges::EntryDataList * pToContRefExCEDL = pToContRefExC->data->objList;
-				_MESSAGE("_DEBUG_PREF_CNVI_7");
-				if (!pToContRefExCEDL){ return; };
-
-				_MESSAGE("_DEBUG_PREF_CNVI_8");
-				// ### uncompacted code
-				//count = pToContRefExC->data->FindItemEntry(type)->countDelta + pContainer->CountItem(type); //original statement
-					ExtraContainerChanges::EntryData * ed1 = pToContRefExC->data->FindItemEntry(type);
-					_MESSAGE("_DEBUG_PREF_CNVI_8.1");
-					UInt32 c1 = 0;
-					if (ed1 != NULL)
-					{
-						c1 = ed1->countDelta;
-					};
-					_MESSAGE("_DEBUG_PREF_CNVI_8.2");
-					UInt32 c2 = 0;
-					/*if (pContainer->CountItem(type))
-					{
-						c2 = pContainer->CountItem(type);
-					};
-					_MESSAGE("_DEBUG_PREF_CNVI_8.3");
-					count = c1 + c2;
-				// ### end uncompacted
-				_MESSAGE("_DEBUG_PREF_CNVI_9");*/
-			};
+			ContainerValue(TESForm * type, UInt32 count) : count(count), pBaseForm(type) {};
 
 			ContainerValue()
 			{
-				//pEntryData = NULL;
-
+				pBaseForm = nullptr;
 				count = 0;
-				//EquippedState = std::tuple<UInt32, UInt32, bool, bool>(0, 0, false, false);
 			}
 
 			void operator=(const ContainerValue& p)
@@ -213,25 +156,13 @@ namespace plugin_spis
 				return this->pBaseForm == p.pBaseForm;
 			}
 
-			/*void UpdateEquippedState(UInt32 durabilityR, UInt32 durabilityL, bool equippedR, bool equippedL)
-			{
-				EquippedState = std::tuple<UInt32, UInt32, bool, bool>(durabilityR, durabilityL, equippedR, equippedL);
-			}*/
-
-			//ExtraContainerChanges::EntryData * pEntryData;
+			//ExtraContainerChanges::EntryData * pEntryData; i don't think i need this
 			TESForm * pBaseForm;
 			SInt32 count;
-			//std::tuple <UInt32, UInt32, bool, bool> EquippedState;
 
 			//1: maxDurability
 			//2: durability
 			typedef std::pair<UInt32, UInt32> DurabilityEntry;
-
-			/*struct DurabilityEntry //why did i even have this????
-			{
-				UInt32 maxdurability;
-				UInt32 durability;
-			};*/
 
 			std::vector<DurabilityEntry> Durabilities;
 		};
@@ -241,15 +172,10 @@ namespace plugin_spis
 		{
 			std::size_t operator()(const ContainerKey& k) const
 			{
-				//_MESSAGE("ContainerKeyHash");
-				//ContainerKey nk = const_cast<const ContainerKey&>(k);
-				//return k.getContainerRef()->handleRefObject.m_uiRefCount >> 11;
-				//std::size_t tk = std::hash < TESObjectREFR* > {}(k.getContainerRef());
-				//_MESSAGE("DEBUG_PREF_CONT_didn't crash on cast");
-				//return tk;
-
-				return std::size_t(k.getcoordinates().x) ^ std::size_t(k.getcoordinates().y) ^ std::size_t(k.getcoordinates().z) ^
-					   std::size_t(k.getrotation().x)    ^ std::size_t(k.getrotation().y)    ^ std::size_t(k.getrotation().z);
+				_MESSAGE("_DEBUG_PREF_CTKH_invoked");
+				const TESObjectREFR* ttorp = k.getContainerRef();
+				_MESSAGE("_DEBUG_PREF_CTKH_gotconstval, refcount:%d", ttorp->handleRefObject.GetRefCount());
+				return ttorp->handleRefObject.GetRefCount();
 			}
 		};
 
@@ -257,11 +183,9 @@ namespace plugin_spis
 		{
 			std::size_t operator()(GroundKey const& k) const
 			{
-				//_MESSAGE("GroundKeyHash");
-				//GroundKey nk = const_cast<const GroundKey&>(k); //whatever, it's not like I wanted to use the builtin hash anyway, baka!
-				//_MESSAGE("DEBUG_PREF_GRND_didn't crash on cast");
-				//return k.getObjectRef()->handleRefObject.m_uiRefCount >> 11;
-				return std::hash < TESObjectREFR* > {}(k.getObjectRef());
+
+				const TESObjectREFR* ttorp = k.getObjectRef();
+				return ttorp->handleRefObject.GetRefCount();
 			}
 		};
 
