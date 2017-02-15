@@ -530,7 +530,20 @@ namespace plugin_spis
 			obj->GetMember("formId", &tformid);
 			equipState.SetNumber(globalEquippedStates->FindInList(LookupFormByID(tformid.GetNumber()), tdur.GetNumber(), tmaxdur.GetNumber()));
 			obj->SetMember("equipState", &equipState);
-			
+		}
+	};
+
+	class SKSEScaleform_SetEquippedState : public GFxFunctionHandler
+	{
+		virtual void Invoke(Args * args)
+		{
+			_MESSAGE("_DEBUG_PREF_SCSQ_invoked");
+			TESForm * form = LookupFormByID(args->args[0].GetNumber());
+			UInt32 maxdur = args->args[1].GetNumber();
+			UInt32 dur = args->args[2].GetNumber();
+			UInt32 hand = args->args[3].GetNumber();
+			_MESSAGE("_DEBUG_PREF_SCSQ_%d,%d,%d,%d", args->args[0].GetNumber(), maxdur, dur, hand);
+			globalEquippedStates->SetState(form, maxdur, dur, hand);
 		}
 	};
 
@@ -632,6 +645,10 @@ namespace plugin_spis
 		RegisterFunction <SKSEScaleform_SetCurrentMaxDurability>(root, view, "SetCurrentMaxDurability");
 
 		RegisterFunction <SKSEScaleform_SetCurrentDurability>(root, view, "SetCurrentDurability");
+
+		RegisterFunction <SKSEScaleform_GetEquippedState>(root, view, "GetEquippedState");
+
+		RegisterFunction <SKSEScaleform_SetEquippedState>(root, view, "SetEquippedState");
 
 		return true;
 	}

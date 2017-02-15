@@ -439,6 +439,7 @@ namespace plugin_spis
 			UInt32 handType;
 
 			std::tuple<TESForm*, UInt32, UInt32> entryTuple = std::tuple<TESForm*, UInt32, UInt32>(item, maxDurability, durability);
+			std::tuple<TESForm*, UInt32, UInt32> emptyTuple = std::tuple<TESForm*, UInt32, UInt32>(nullptr, 0, 0);
 
 			_MESSAGE("_DEBUG_PREF_SEST_1,%d", item->formID);
 			TESObjectARMO * helmet = DYNAMIC_CAST(LookupFormByID(80227), TESForm, TESObjectARMO);
@@ -460,19 +461,21 @@ namespace plugin_spis
 					switch (hand)
 					{
 					case kRightHand:
-						EquippedEntries[0] = entryTuple;
+						if (EquippedEntries[0] == entryTuple) { EquippedEntries[0] = emptyTuple; }
+						else { EquippedEntries[0] = entryTuple; }
 						twoHanded = false;
 						return true;
 					case kLeftHand:
-						EquippedEntries[1] = entryTuple;
+						if (EquippedEntries[1] == entryTuple) { EquippedEntries[1] = emptyTuple; }
+						else { EquippedEntries[1] = entryTuple; }
 						twoHanded = false;
 						return true;
 					default:
 						return false;
 					}
 				case 2: //twohanded
-					EquippedEntries[0] = entryTuple;
-					twoHanded = true;
+					if (EquippedEntries[0] == entryTuple) { EquippedEntries[0] = emptyTuple; }
+					else { EquippedEntries[0] = entryTuple; twoHanded = true; }
 					return true;
 				default:
 					return false;
@@ -484,52 +487,67 @@ namespace plugin_spis
 				std::bitset<32> tb = armor->bipedObject.GetSlotMask();
 				if (tb[1])
 				{
-					EquippedEntries[3] = entryTuple;
+					if (EquippedEntries[3] == entryTuple) { EquippedEntries[3] = emptyTuple; }
+					else { EquippedEntries[3] = entryTuple; }
 					return true;
 				}
 				switch (armor->bipedObject.GetSlotMask())
 				{
 				case kPart_Head:
-					EquippedEntries[2] = entryTuple;
+					if (EquippedEntries[2] == entryTuple) { EquippedEntries[2] = emptyTuple; }
+					else { EquippedEntries[2] = entryTuple; }
 					return true;
 				case kPart_Hair:
-					EquippedEntries[3] = entryTuple;
+					if (EquippedEntries[3] == entryTuple) { EquippedEntries[3] = emptyTuple; }
+					else { EquippedEntries[3] = entryTuple; }
 					return true;
 				case kPart_Body:
-					EquippedEntries[4] = entryTuple;
+					if (EquippedEntries[4] == entryTuple) { EquippedEntries[4] = emptyTuple; }
+					else { EquippedEntries[4] = entryTuple; }
 					return true;
 				case kPart_Hands:
-					EquippedEntries[5] = entryTuple;
+					if (EquippedEntries[5] == entryTuple) { EquippedEntries[5] = emptyTuple; }
+					else { EquippedEntries[5] = entryTuple; }
 					return true;
 				case kPart_Forearms:
-					EquippedEntries[6] = entryTuple;
+					if (EquippedEntries[6] == entryTuple) { EquippedEntries[6] = emptyTuple; }
+					else { EquippedEntries[6] = entryTuple; }
 					return true;
 				case kPart_Amulet:
-					EquippedEntries[7] = entryTuple;
+					if (EquippedEntries[7] == entryTuple) { EquippedEntries[7] = emptyTuple; }
+					else { EquippedEntries[7] = entryTuple; }
 					return true;
 				case kPart_Ring:
-					EquippedEntries[8] = entryTuple;
+					if (EquippedEntries[8] == entryTuple) { EquippedEntries[8] = emptyTuple; }
+					else { EquippedEntries[8] = entryTuple; }
 					return true;
 				case kPart_Feet:
-					EquippedEntries[9] = entryTuple;
+					if (EquippedEntries[9] == entryTuple) { EquippedEntries[9] = emptyTuple; }
+					else { EquippedEntries[9] = entryTuple; }
 					return true;
 				case kPart_Calves:
-					EquippedEntries[10] = entryTuple;
+					if (EquippedEntries[10] == entryTuple) { EquippedEntries[10] = emptyTuple; }
+					else { EquippedEntries[10] = entryTuple; }
 					return true;
 				case kPart_Shield:
-					EquippedEntries[11] = entryTuple;
+					if (EquippedEntries[11] == entryTuple) { EquippedEntries[11] = emptyTuple; }
+					else { EquippedEntries[11] = entryTuple; }
 					return true;
 				case kPart_Unnamed10:
-					EquippedEntries[12] = entryTuple;
+					if (EquippedEntries[12] == entryTuple) { EquippedEntries[12] = emptyTuple; }
+					else { EquippedEntries[12] = entryTuple; }
 					return true;
 				case kPart_LongHair:
-					EquippedEntries[13] = entryTuple;
+					if (EquippedEntries[13] == entryTuple) { EquippedEntries[13] = emptyTuple; }
+					else { EquippedEntries[13] = entryTuple; }
 					return true;
 				case kPart_Circlet:
-					EquippedEntries[14] = entryTuple;
+					if (EquippedEntries[14] == entryTuple) { EquippedEntries[14] = emptyTuple; }
+					else { EquippedEntries[14] = entryTuple; }
 					return true;
 				case kPart_Ears:
-					EquippedEntries[15] = entryTuple;
+					if (EquippedEntries[15] == entryTuple) { EquippedEntries[15] = emptyTuple; }
+					else { EquippedEntries[15] = entryTuple; }
 					return true;
 				default:
 					return false;
@@ -548,7 +566,7 @@ namespace plugin_spis
 		{
 			for (UInt8 i = 0; i < 18; i++)
 			{
-				if (std::get<0>(EquippedEntries[i]) == item && std::get<1>(EquippedEntries[i]) == maxDurability && std::get<2>(EquippedEntries[i]) == durability)
+				if ((std::get<0>(EquippedEntries[i]) == item) && (std::get<1>(EquippedEntries[i]) == maxDurability) && (std::get<2>(EquippedEntries[i]) == durability))
 				{
 					if (i == 0 && twoHanded)
 					{
@@ -568,6 +586,8 @@ namespace plugin_spis
 					}
 				}
 			}
+
+			return 0;
 		}
 
 		struct FormIDMatcher : public FormMatcher
