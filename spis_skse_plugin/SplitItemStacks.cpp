@@ -26,6 +26,7 @@ namespace plugin_spis
 	DurabilityTracker * globalDurabilityTracker;
 	CurrentContainer * globalCurrentContainer;
 	CurrentDurability * globalCurrentDurability;
+	EquippedStates * globalEquippedStates;
 	bool isInitialized = false;
 
 	//durabilitytracker function defines, some are deprecated and commented (because I'm a code hoarder)
@@ -347,6 +348,7 @@ namespace plugin_spis
 			globalDurabilityTracker = new DurabilityTracker();
 			globalCurrentContainer = new CurrentContainer(nullptr);
 			globalCurrentDurability = new CurrentDurability(0, 0);
+			globalEquippedStates = new EquippedStates;
 			isInitialized = true;
 		}
 		return isInitialized;
@@ -358,6 +360,27 @@ namespace plugin_spis
 		std::stringstream stream;
 		stream << std::setfill('0') << std::setw(sizeof(UInt32) * 2) << std::hex << i;
 		return stream.str();
+	}
+	//copied function from papyrusactor.cpp, wasn't defined in header so.....
+	SInt32 CalcItemId(TESForm * form, BaseExtraList * extraList)
+	{
+		if (!form || !extraList)
+			return 0;
+
+		const char * name = extraList->GetDisplayName(form);
+
+		// No name in extra data? Use base form name
+		if (!name)
+		{
+			TESFullName* pFullName = DYNAMIC_CAST(form, TESForm, TESFullName);
+			if (pFullName)
+				name = pFullName->name.data;
+		}
+
+		if (!name)
+			return 0;
+
+		return (SInt32)HashUtil::CRC32(name, form->formID & 0x00FFFFFF);
 	}
 
 	UInt32 LookupDurabilityInfo(TESForm* item)
@@ -436,6 +459,11 @@ namespace plugin_spis
 		return globalCurrentDurability->GetMaxDurability();
 	};
 
+	bool WrapEquipStates(StaticFunctionTag * base, TESObjectREFR * actor)
+	{
+		return globalEquippedStates->WrapEquipStates(actor, globalDurabilityTracker);
+	}
+
 	//UI functions
 	//keeping this here for now so it can interact with globalDurabilityTracker
 	//theres probably a better way to do this, perhaps look back at this later. for now it works
@@ -488,19 +516,42 @@ namespace plugin_spis
 		}
 	};
 
+	class SKSEScaleform_GetEquippedState : public GFxFunctionHandler
+	{
+		virtual void Invoke(Args * args)
+		{
+			GFxValue * obj = &(args->args[0]);
+			GFxValue tmaxdur;
+			GFxValue tdur;
+			GFxValue tformid;
+			GFxValue equipState;
+			obj->GetMember("maxDurability", &tmaxdur);
+			obj->GetMember("durability", &tdur);
+			obj->GetMember("formId", &tformid);
+			equipState.SetNumber(globalEquippedStates->FindInList(LookupFormByID(tformid.GetNumber()), tdur.GetNumber(), tmaxdur.GetNumber()));
+			obj->SetMember("equipState", &equipState);
+			
+		}
+	};
+
+	//serialization functions
+
 	void Serialization_Revert(SKSESerializationInterface * intfc)
 	{
 		_MESSAGE("revert");
 	}
 
-	const UInt32 kSerializationDataVersion = 1;
+	const UInt32 kSerializationDataVersion = 0;
 
 	void Serialization_Save(SKSESerializationInterface * intfc)
 	{
-		//_MESSAGE("_DEBUG_PREF_SAVE_invoked");
-		SerializeGnrlContainerMap(globalDurabilityTracker->ContainerEntries, intfc);
-		SerializeGroundMap(globalDurabilityTracker->GroundEntries, intfc);
-		intfc->OpenRecord(kTypeInitialized, 0);
+		_MESSAGE("_DEBUG_PREF_SAVE_invoked");
+		SerializeGnrlContainerMap(globalDurabilityTracker->ContainerEntries, intfc); _MESSAGE("_DEBUG_PREF_SAVE_1");
+		SerializeGroundMap(globalDurabilityTracker->GroundEntries, intfc); _MESSAGE("_DEBUG_PREF_SAVE_2");
+		SerializeEquippedStates(intfc, globalEquippedStates); _MESSAGE("_DEBUG_PREF_SAVE_3");
+		SerializeCurrentContainer(intfc, globalCurrentContainer); _MESSAGE("_DEBUG_PREF_SAVE_4");
+		SerializeCurrentDurability(intfc, globalCurrentDurability); _MESSAGE("_DEBUG_PREF_SAVE_5");
+		intfc->OpenRecord(kTypeInitialized, 0); _MESSAGE("_DEBUG_PREF_SAVE_6");
 		intfc->WriteRecordData(&isInitialized, sizeof(bool));
 	}
 
@@ -527,6 +578,15 @@ namespace plugin_spis
 				//_MESSAGE("_DEBUG_PREF_LOAD_3");
 				intfc->ReadRecordData(&ii, sizeof(bool));
 				isInitialized = ii;
+				break;
+			case kTypeEquippedStates:
+				*(globalEquippedStates) = UnserializeEquippedStates(intfc);
+				break;
+			case kTypeCurrentContainer:
+				*(globalCurrentContainer) = UnserializeCurrentContainer(intfc);
+				break;
+			case kTypeCurrentDurability:
+				*(globalCurrentDurability) = UnserializeCurrentDurability(intfc);
 				break;
 			}
 		}
@@ -555,6 +615,8 @@ namespace plugin_spis
 		registry->RegisterFunction(new NativeFunction0 <StaticFunctionTag, UInt32>("GetCurrentDurability", "plugin_spis", plugin_spis::GetCurrentDurability, registry));
 
 		registry->RegisterFunction(new NativeFunction0 <StaticFunctionTag, UInt32>("GetCurrentMaxDurability", "plugin_spis", plugin_spis::GetCurrentMaxDurability, registry));
+
+		registry->RegisterFunction(new NativeFunction1 <StaticFunctionTag, bool, TESObjectREFR*>("WrapEquipStates", "plugin_spis", plugin_spis::WrapEquipStates, registry));
 
 		//registry->RegisterFunction(new NativeFunction1 <StaticFunctionTag, void, BSFixedString>("outputToOpenDebugLog", "plugin_spis", plugin_spis::outputToOpenDebugLog, registry));
 

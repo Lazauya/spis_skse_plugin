@@ -24,7 +24,10 @@ namespace plugin_spis
 		kTypeVectorSize,
 		kTypeContainerMap,
 		kTypeInitialized,
-		kTypeGroundMap
+		kTypeGroundMap,
+		kTypeEquippedStates,
+		kTypeCurrentContainer,
+		kTypeCurrentDurability
 	};
 
 	void SerializeContainerKey(DurabilityTracker::ContainerKey key, SKSESerializationInterface * intfc)
@@ -281,5 +284,89 @@ namespace plugin_spis
 		}
 
 		return outmap;
+	}
+
+	void SerializeFormUInt32UInt32Tuple(SKSESerializationInterface * intfc, std::tuple<TESForm*, UInt32, UInt32> tup)
+	{
+		//SerializeTESForm(std::get<0>(tup), intfc);
+		UInt32 id = std::get<0>(tup) == nullptr ? 0 : std::get<0>(tup)->formID, max = std::get<1>(tup) ? std::get<1>(tup) : 0, dur = std::get<2>(tup) ? std::get<2>(tup) : 0;
+		intfc->WriteRecordData(&id, sizeof(UInt32));
+		_MESSAGE("_DEBUG_PREF_SFUU_1,%d", std::get<0>(tup) == nullptr ? 0 : std::get<0>(tup)->formID);
+		intfc->WriteRecordData(&max, sizeof(UInt32));
+		_MESSAGE("_DEBUG_PREF_SFUU_2,%d", std::get<1>(tup));
+		intfc->WriteRecordData(&dur, sizeof(UInt32));
+		_MESSAGE("_DEBUG_PREF_SFUU_3,%d", std::get<2>(tup));
+	}
+	
+	void SerializeEquippedStates(SKSESerializationInterface * intfc, EquippedStates * equips)
+	{
+		intfc->OpenRecord(kTypeEquippedStates, 0);
+		for (UInt32 i = 0; i < 18; i++)
+		{
+			SerializeFormUInt32UInt32Tuple(intfc, equips->EquippedEntries[i]);
+		}
+		intfc->WriteRecordData(&(equips->twoHanded), sizeof(bool));
+	}
+
+	std::tuple<TESForm*, UInt32, UInt32> UnserializeFormUInt32UInt32Tuple(SKSESerializationInterface * intfc)
+	{
+		UInt32 outid, dur, maxdur;
+		intfc->ReadRecordData(&outid, sizeof(UInt32));
+		TESForm * outform = LookupFormByID(outid);
+		_MESSAGE("_DEBUG_PREF_UFUU_1,%d", outform == nullptr ? 0 : outform->formID);
+		intfc->ReadRecordData(&maxdur, sizeof(UInt32));
+		_MESSAGE("_DEBUG_PREF_UFUU_2,%d", maxdur);
+		intfc->ReadRecordData(&dur, sizeof(UInt32));
+		_MESSAGE("_DEBUG_PREF_UFUU_3,%d", dur);
+		return std::tuple<TESForm*, UInt32, UInt32>(outform, maxdur, dur);
+	}
+
+	EquippedStates UnserializeEquippedStates(SKSESerializationInterface * intfc)
+	{
+		EquippedStates eqs;
+		for (UInt32 i = 0; i < 18; i++)
+		{
+			_MESSAGE("_DEBUG_PREF_UEQS_1,%d", i);
+			eqs.EquippedEntries[i] = UnserializeFormUInt32UInt32Tuple(intfc);
+		}
+		bool outbool;
+		intfc->ReadRecordData(&outbool, sizeof(bool));
+		_MESSAGE("_DEBUG_PREF_UEQS_2,%d", outbool);
+		eqs.twoHanded = outbool;
+		_MESSAGE("_DEBUG_PREF_UEQS_3");
+		return eqs;
+	}
+
+	void SerializeCurrentContainer(SKSESerializationInterface * intfc, CurrentContainer * cc)
+	{
+		intfc->OpenRecord(kTypeCurrentContainer, 0);
+		UInt32 refhan = cc->GetContainer() == nullptr ? 0 : cc->GetContainer()->CreateRefHandle();
+		intfc->WriteRecordData(&refhan, sizeof(UInt32));
+	}
+
+	CurrentContainer UnserializeCurrentContainer(SKSESerializationInterface * intfc)
+	{
+		UInt32 refhan;
+		intfc->ReadRecordData(&refhan, sizeof(UInt32));
+		TESObjectREFR * outref = nullptr;
+		LookupREFRByHandle(&refhan, &outref);
+		return CurrentContainer(outref);
+	}
+
+	void SerializeCurrentDurability(SKSESerializationInterface * intfc, CurrentDurability * cd)
+	{
+		intfc->OpenRecord(kTypeCurrentDurability, 0);
+		UInt32 d = cd->GetDurability();
+		UInt32 md = cd->GetMaxDurability();
+		intfc->WriteRecordData(&md, sizeof(UInt32));
+		intfc->WriteRecordData(&d, sizeof(UInt32));
+	}
+
+	CurrentDurability UnserializeCurrentDurability(SKSESerializationInterface * intfc)
+	{
+		UInt32 outd, outmd;
+		intfc->ReadRecordData(&outmd, sizeof(UInt32));
+		intfc->ReadRecordData(&outd, sizeof(UInt32));
+		return CurrentDurability(outmd, outd);
 	}
 }
