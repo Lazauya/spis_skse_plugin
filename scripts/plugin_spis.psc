@@ -12,11 +12,17 @@ ScriptName plugin_spis Hidden
 
 Bool Function InitializeDurabilityTracker() global native
 Bool Function AddEntry(Int space, ObjectReference cont, Form item, ObjectReference groundItem, Int amount, Int durability, Int maxDurability) global native
-Bool Function RemoveEntry(Int space, ObjectReference cont, Form item, ObjectReference groundItem, Int amount, Int removeType, Int durability) global native
-Bool Function MoveEntry(Int space, ObjectReference contFrom, ObjectReference contTo, Form item, Int amount, Int durability) global native
-Function PrintFound(Int findType, ObjectReference cont, Form item, Int durability) global native 
+Bool Function RemoveEntry(Int space, ObjectReference cont, Form item, ObjectReference groundItem, Int amount, Int removeType, Int durability, Int maxDurability, Int nth = 0) global native
+Bool Function MoveEntry(Int space, ObjectReference contFrom, ObjectReference contTo, Form item, ObjectReference groundItem, Int amount, Int durability, Int maxDurability, Int nth = 0) global native
+Function PrintFound(Int findType, ObjectReference cont, Form item, Int durability, Int maxDurability, Int nth = 0) global native 
 Bool Function WrapEntries(ObjectReference cont) global native 
 ObjectReference Function GetCurrentContainer() global native
 Bool Function SetCurrentContainer(ObjectReference cont) global native 
 Int Function GetCurrentDurability() global native
 Int Function GetCurrentMaxDurability() global native 
+Bool Function WrapEquipStates(ObjectReference cont) global native 
+Bool Function IncrementEquippedDurability(Int slot, Int amount, ObjectReference cont) global native
+Bool Function DecrementEquippedDurability(Int slot, Int amount, ObjectReference cont) global native 
+Bool Function SetCurrentGroundKey(ObjectReference obj) global native 
+Bool Function IsCurrentGroundKeyNull() global native 
+Bool Function SetCurrentGroundKeyNull() global native 

@@ -62,9 +62,9 @@ namespace plugin_spis
 		
 		DurabilityTracker();
 		/*{
-			_MESSAGE("_DEBUG_PREF_INIT_init called");
+			//_MESSAGE("_DEBUG_PREF_INIT_init called");
 			GroundEntries = new std::unordered_map< GroundKey, GroundValue, GroundKeyHash >;
-			_MESSAGE("_DEBUG_PPEF_INIT_ground entries just declared");
+			//_MESSAGE("_DEBUG_PPEF_INIT_ground entries just declared");
 			ContainerEntries = new std::unordered_map < ContainerKey, std::unordered_map<TESForm*, ContainerValue, TESFormHash, TESFormEquality>, ContainerKeyHash >;
 		}*/
 
@@ -74,37 +74,34 @@ namespace plugin_spis
 		{
 		private:
 			TESObjectREFR* ObjectRef;
-			NiPoint3 * coordinates;
-			NiPoint3 * rotation;
-			TESObjectCELL * cell;
+			//this is for creating "temporary" ground keys, because the additem doesn't give an objref for ground items
+			UInt32 hashKey;
 		public:
-			GroundKey(TESObjectREFR* object) : ObjectRef(object), coordinates(&(ObjectRef->pos)), rotation(&(ObjectRef->rot)), cell(ObjectRef->parentCell) { _MESSAGE("_DEBUG_PREF_GRIN_init called"); };
-			GroundKey() : ObjectRef(nullptr), coordinates(nullptr), rotation(nullptr), cell(nullptr) {};
+			GroundKey(TESObjectREFR* object) : ObjectRef(object), hashKey(ObjectRef->CreateRefHandle()) {};
+			GroundKey() : ObjectRef(nullptr), hashKey(0) {};
 			void setObjectRef(TESObjectREFR* object)
 			{
 				ObjectRef = object;
-				coordinates = &(ObjectRef->pos);
-				rotation = &(ObjectRef->rot);
-				cell = ObjectRef->parentCell;
 			}
 			TESObjectREFR* getObjectRef() const { return ObjectRef; }
-			NiPoint3 getcoordinates() { return *coordinates; }
-			NiPoint3 getrotation() { return *rotation; }
-			TESForm* getform() { return ObjectRef->baseForm; }
-			TESObjectCELL* getcell() { return cell; }
 
 			bool operator==(const GroundKey &other) const
 			{
-				return (this->ObjectRef) == (other.ObjectRef);
+				return this->hashKey == other.hashKey;
 			}
 
-			void operator=(const GroundKey &other)
+			void sethashKey(UInt32 key)
 			{
-				this->setObjectRef(other.getObjectRef());
+				hashKey = key;
+			}
+			UInt32 gethashKey() const
+			{
+				return hashKey;
 			}
 		};
 
 		//check DurabilityEntry for specs
+
 		typedef std::pair<UInt32, UInt32> GroundValue;
 
 		//structures for container maps
@@ -113,46 +110,18 @@ namespace plugin_spis
 		{
 		private:
 			TESObjectREFR* ContainerRef;
-			NiPoint3 * coordinates;
-			NiPoint3 * rotation;
-			TESObjectCELL * cell;
 		public:
-			ContainerKey(TESObjectREFR* object) : ContainerRef(object), coordinates(object != nullptr ? &(ContainerRef->pos) : nullptr), rotation(object != nullptr ? &(ContainerRef->rot) : nullptr), cell((object != nullptr ? ContainerRef->parentCell : nullptr)) { _MESSAGE("_DEBUG_PREF_CTIN_init called"); };
-			ContainerKey() : ContainerRef(nullptr), coordinates(nullptr), rotation(nullptr), cell(nullptr) {};
-			ContainerKey(NiPoint3 * c, NiPoint3 * r) : coordinates(c), rotation(r) {};
+			ContainerKey(TESObjectREFR* object) : ContainerRef(object) {};
+			ContainerKey() : ContainerRef(nullptr) {};
 			void setContainerRef(TESObjectREFR* object)
 			{
 				ContainerRef = object;
-				coordinates = &(ContainerRef->pos);
-				rotation = &(ContainerRef->rot);
-				cell = ContainerRef->parentCell;
 			}
 
-			//probably irrelevant, found something that makes this obselete
-			/*
-			//need this for serialization, will probably add an extra method for resyncing the actual object ref/cell
-			//whenever player interacts with it. but maybe not.
-			void setContainerKey(NiPoint3* coord, NiPoint3* rot)
-			{
-				ContainerRef = nullptr;
-				coordinates = coord;
-				rotation = rot;
-				cell = nullptr;
-			}*/
-
 			TESObjectREFR* getContainerRef() const { return ContainerRef; }
-			NiPoint3 getcoordinates() const { return *coordinates; }
-			NiPoint3 getrotation() const { return *rotation; }
-			TESObjectCELL* getcell() { return cell; }
 
 			bool operator==(const ContainerKey &other) const
 			{
-				/*return ((*(this->coordinates)).x) == ((*(other.coordinates)).x) &&
-					   ((*(this->coordinates)).y) == ((*(other.coordinates)).y) &&
-					   ((*(this->coordinates)).z) == ((*(other.coordinates)).z) &&
-					   ((*(this->rotation)).x)    == ((*(other.rotation)).x)    &&
-					   ((*(this->rotation)).y)    == ((*(other.rotation)).y)    && 
-					   ((*(this->rotation)).z)    == ((*(other.rotation)).z);*/
 				return this->ContainerRef == other.ContainerRef;
 			}
 
@@ -201,9 +170,9 @@ namespace plugin_spis
 		{
 			std::size_t operator()(const ContainerKey& k) const
 			{
-				_MESSAGE("_DEBUG_PREF_CTKH_invoked");
+				////_MESSAGE("_DEBUG_PREF_CTKH_invoked");
 				const TESObjectREFR* ttorp = k.getContainerRef();
-				//_MESSAGE("_DEBUG_PREF_CTKH_gotconstval, refcount:%d", ttorp->CreateRefHandle());
+				////_MESSAGE("_DEBUG_PREF_CTKH_gotconstval, refcount:%d", ttorp->CreateRefHandle());
 				const UInt32 outhash = const_cast<TESObjectREFR*>(ttorp)->CreateRefHandle();
 				return outhash;
 			}
@@ -213,38 +182,21 @@ namespace plugin_spis
 		{
 			std::size_t operator()(GroundKey const& k) const
 			{
-
+				
+				const UInt32 outhash1 = k.gethashKey();
+				if (outhash1)
+				{
+					_MESSAGE("_DEBUG_PREF_GKYH_1kh:%d", outhash1);
+					return outhash1;
+				}
+				
 				const TESObjectREFR* ttorp = k.getObjectRef();
-				//_MESSAGE("_DEBUG_PREF_CTKH_gotconstval, refcount:%d", ttorp->CreateRefHandle());
+				////_MESSAGE("_DEBUG_PREF_CTKH_gotconstval, refcount:%d", ttorp->CreateRefHandle());
 				const UInt32 outhash = const_cast<TESObjectREFR*>(ttorp)->CreateRefHandle();
+				_MESSAGE("_DEBUG_PREF_GKYH_2kh:%d", outhash);
 				return outhash;
 			}
 		};
-
-		/*struct TESFormHash
-		{
-			std::size_t operator()(const TESForm*& k) const
-			{
-				_MESSAGE("TESFormHash");
-				//return (const_cast<TESForm*&>(k))->formID;
-				return k->formID;
-			};
-		};
-
-		struct TESFormEquality
-		{
-			bool operator()(TESForm*& const p1, const TESForm*& p2) const
-			{
-				_MESSAGE("TESFormEquality");
-				//return (const_cast<TESForm*&>(p1))->formID == (const_cast<TESForm*&>(p2))->formID;
-				return (p1->formID == p2->formID);
-			};
-		};
-
-		/*bool TESFormEqualityFunction(const TESForm*& p1, const TESForm*& p2)
-		{
-			return p1->formID == p2->formID;
-		};*/
 
 		std::unordered_map<GroundKey, GroundValue, GroundKeyHash>* GroundEntries;
 		std::unordered_map<ContainerKey, std::unordered_map < TESForm*, ContainerValue>, ContainerKeyHash >* ContainerEntries;
@@ -257,6 +209,7 @@ namespace plugin_spis
 			1 - ground
 			2 - ground to container (move only)
 			3 - container to ground (move only)
+			4 - container, use CurrentGroundKey
 		*/
 
 		/*
@@ -271,15 +224,15 @@ namespace plugin_spis
 
 		//using two because i'm a newb 'n I don't want to deal with templates
 		GroundKey FindEntryGround(TESObjectREFR * item, UInt32 durability); //return key of first entry; only one function because of lack of ambiguity
-		SInt32 FindEntryContainer(UInt8 findType, TESObjectREFR * container, TESForm * item, UInt32 durability); //return index of first entry in array
-		ContainerValue FindDurabilityContainer(TESObjectREFR * container, UInt32 formID); //find durability(s) of items with this formID
+		SInt32 FindEntryContainer(UInt8 findType, TESObjectREFR * container, TESForm * item, UInt32 durability, UInt32 maxDurability, UInt32 nth); //return index of first entry in array
+		ContainerValue * FindDurabilityContainer(TESObjectREFR * container, UInt32 formID); //find durability(s) of items with this formID
 
 		bool WrapEntries(TESObjectREFR * container);
 
 		bool AddEntry(UInt8 space, TESObjectREFR * container, TESForm * item, TESObjectREFR * groundItem, UInt32 amount, UInt32 durability, UInt32 maxDurability);
-		bool RemoveEntry(UInt8 space, TESObjectREFR * container, TESForm * item, TESObjectREFR * groundItem, UInt32 amount, UInt8 removeType, UInt32 durability);
+		bool RemoveEntry(UInt8 space, TESObjectREFR * container, TESForm * item, TESObjectREFR * groundItem, UInt32 amount, UInt8 removeType, UInt32 durability, UInt32 maxDurability, UInt32 nth = 0);
 		//only including this beacuse speed of papyrus is scheisse
-		bool MoveEntry(UInt8 space, TESObjectREFR * containerFrom, TESObjectREFR * containerTo, TESForm * item, TESObjectREFR * groundItem, UInt32 amount, UInt32 durability);
+		bool MoveEntry(UInt8 space, TESObjectREFR * containerFrom, TESObjectREFR * containerTo, TESForm * item, TESObjectREFR * groundItem, UInt32 amount, UInt32 durability, UInt32 maxDurability, UInt32 nth = 0);
 	};
 
 	class CurrentContainer
@@ -292,9 +245,9 @@ namespace plugin_spis
 
 			bool ChangeContainer(TESObjectREFR * container)
 			{
-				_MESSAGE("_DEBUG_PREF_CCCC_invoked");
+				////_MESSAGE("_DEBUG_PREF_CCCC_invoked");
 				currentContainer = container;
-				_MESSAGE("_DEBUG_PREF_CCCC_container set?");
+				////_MESSAGE("_DEBUG_PREF_CCCC_container set?");
 				return currentContainer == nullptr ? false : true;
 			};
 
@@ -339,7 +292,7 @@ namespace plugin_spis
 		2 - head
 		3 - hair
 		*/
-		std::vector<std::tuple<TESForm*, UInt32, UInt32> > EquippedEntries;
+		std::vector<std::tuple<TESForm*, UInt32, UInt32, UInt32> > EquippedEntries;
 		//if true, weapon stuff only looks at first entry for equipped weapon and sets it to "equipped" in scaleform
 		bool twoHanded;
 	
@@ -347,12 +300,12 @@ namespace plugin_spis
 		{
 			for (UInt8 i = 0; i < 18; i++)
 			{
-				EquippedEntries.push_back(std::tuple<TESForm*, UInt32, UInt32>(nullptr, 0, 0));
+				EquippedEntries.push_back(std::tuple<TESForm*, UInt32, UInt32, UInt32>(nullptr, 0, 0, 0));
 			}
 			twoHanded = false;
 		}
 
-		bool setEquippedEntries(std::vector<std::tuple<TESForm*, UInt32, UInt32> > entries)
+		bool setEquippedEntries(std::vector<std::tuple<TESForm*, UInt32, UInt32, UInt32> > entries)
 		{
 			for (UInt32 i = 0; i < 18; i++)
 			{
@@ -361,7 +314,7 @@ namespace plugin_spis
 			return true;
 		}
 
-		std::vector<std::tuple<TESForm*, UInt32, UInt32> > getEquippedEntries()
+		std::vector<std::tuple<TESForm*, UInt32, UInt32, UInt32> > getEquippedEntries()
 		{
 			return EquippedEntries;
 		}
@@ -432,29 +385,31 @@ namespace plugin_spis
 			kPart_FX01 = 1 << 31,
 		};
 
-		bool SetState(TESForm * item, UInt32 durability, UInt32 maxDurability, UInt8 hand)
+		//n is the nth item with this durability, because some items may have the same durability but only one of them should
+		//be equipped. other params are self explanatory
+		bool SetState(TESForm * item, UInt32 durability, UInt32 maxDurability, UInt8 hand, UInt32 n)
 		{
 			TESObjectWEAP* weapon;
 			TESObjectARMO* armor;
 			UInt32 handType;
 
-			std::tuple<TESForm*, UInt32, UInt32> entryTuple = std::tuple<TESForm*, UInt32, UInt32>(item, maxDurability, durability);
-			std::tuple<TESForm*, UInt32, UInt32> emptyTuple = std::tuple<TESForm*, UInt32, UInt32>(nullptr, 0, 0);
+			std::tuple<TESForm*, UInt32, UInt32, UInt32> entryTuple = std::tuple<TESForm*, UInt32, UInt32, UInt32>(item, maxDurability, durability, n);
+			std::tuple<TESForm*, UInt32, UInt32, UInt32> emptyTuple = std::tuple<TESForm*, UInt32, UInt32, UInt32>(nullptr, 0, 0, 0);
 
-			_MESSAGE("_DEBUG_PREF_SEST_1,%d", item->formID);
+			//_MESSAGE("_DEBUG_PREF_SEST_1,%d", item->formID);
 			TESObjectARMO * helmet = DYNAMIC_CAST(LookupFormByID(80227), TESForm, TESObjectARMO);
-			_MESSAGE("_DEBUG_PREF_SEST_1.1,%d", helmet->bipedObject.GetSlotMask());
+			//_MESSAGE("_DEBUG_PREF_SEST_1.1,%d", helmet->bipedObject.GetSlotMask());
 
 			switch (item->formType)
 			{
 			case kFormType_Weapon:
 				weapon = DYNAMIC_CAST(item, TESForm, TESObjectWEAP);
 				if (!weapon) { return false; };
-				_MESSAGE("_DEBUG_PREF_SEST_2");
-				_MESSAGE("_DEBUG_PREF_SEST_3,%d", weapon->type());
+				////_MESSAGE("_DEBUG_PREF_SEST_2");
+				////_MESSAGE("_DEBUG_PREF_SEST_3,%d", weapon->type());
 				handType = ((weapon->type() == kType_OneHandSword) || (weapon->type() == kType_OneHandDagger) || (weapon->type() == kType_OneHandAxe) || (weapon->type() == kType_OneHandMace) || (weapon->type() == kType_1HS) || (weapon->type() == kType_1HD) || (weapon->type() == kType_1HA) || (weapon->type() == kType_OneHandMace)) ? 1 : 0;
 				handType = (weapon->type() == kType_TwoHandSword || weapon->type() == kType_TwoHandAxe || weapon->type() == kType_Bow || weapon->type() == kType_Staff || weapon->type() == kType_CrossBow || weapon->type() == kType_2HS || weapon->type() == kType_2HA || weapon->type() == kType_Bow2 || weapon->type() == kType_Staff2 || weapon->type() == kType_CBow || weapon->type() == kType_HandToHandMelee || weapon->type() == kType_H2H) ? 2 : handType;
-				_MESSAGE("_DEBUG_PREF_SEST_4,%d", handType);
+				////_MESSAGE("_DEBUG_PREF_SEST_4,%d", handType);
 				switch (handType)
 				{
 				case 1: //onehanded
@@ -462,11 +417,13 @@ namespace plugin_spis
 					{
 					case kRightHand:
 						if (EquippedEntries[0] == entryTuple) { EquippedEntries[0] = emptyTuple; }
+						else if (EquippedEntries[1] == entryTuple) { EquippedEntries[1] = emptyTuple; EquippedEntries[0] = entryTuple; }
 						else { EquippedEntries[0] = entryTuple; }
 						twoHanded = false;
 						return true;
 					case kLeftHand:
 						if (EquippedEntries[1] == entryTuple) { EquippedEntries[1] = emptyTuple; }
+						else if (EquippedEntries[0] == entryTuple) { EquippedEntries[0] = emptyTuple; EquippedEntries[1] = entryTuple; }
 						else { EquippedEntries[1] = entryTuple; }
 						twoHanded = false;
 						return true;
@@ -483,7 +440,9 @@ namespace plugin_spis
 			case kFormType_Armor:
 				armor = DYNAMIC_CAST(item, TESForm, TESObjectARMO);
 				if (!armor) { return false; };
-				_MESSAGE("_DEBUG_PREF_SEST_5,%d", armor->bipedObject.GetSlotMask());
+				//_MESSAGE("_DEBUG_PREF_SEST_5,%d", armor->bipedObject.GetSlotMask());
+				//i really have no idea why this is nessecary. i made it check the 2nd bit only, because something operates on entire
+				//slot mask value and flips other bits. nothing in docs says anything about it (shrug)
 				std::bitset<32> tb = armor->bipedObject.GetSlotMask();
 				if (tb[1])
 				{
@@ -562,11 +521,11 @@ namespace plugin_spis
 		3 - right
 		4 - left and right
 		*/
-		UInt8 FindInList(TESForm * item, UInt32 durability, UInt32 maxDurability)
+		UInt8 FindInList(TESForm * item, UInt32 durability, UInt32 maxDurability, UInt32 n)
 		{
 			for (UInt8 i = 0; i < 18; i++)
 			{
-				if ((std::get<0>(EquippedEntries[i]) == item) && (std::get<1>(EquippedEntries[i]) == maxDurability) && (std::get<2>(EquippedEntries[i]) == durability))
+				if ((std::get<0>(EquippedEntries[i]) == item) && (std::get<1>(EquippedEntries[i]) == maxDurability) && (std::get<2>(EquippedEntries[i]) == durability) && (std::get<3>(EquippedEntries[i]) == n))
 				{
 					if (i == 0 && twoHanded)
 					{
@@ -602,49 +561,67 @@ namespace plugin_spis
 
 		bool WrapEquipStates(TESObjectREFR * actor, DurabilityTracker * dtracker)
 		{
-			_MESSAGE("_DEBUG_PREF_WEQS_1");
+			//_MESSAGE("_DEBUG_PREF_WEQS_1");
 			ExtraContainerChanges * pToContRefExC = static_cast<ExtraContainerChanges*>(actor->extraData.GetByType(kExtraData_ContainerChanges));
 			if (!pToContRefExC){ return false; };
-			_MESSAGE("_DEBUG_PREF_WEQS_2");
+			//_MESSAGE("_DEBUG_PREF_WEQS_2");
 			UInt32 i = 0;
 			ExtraContainerChanges::EquipItemData outData;
-			_MESSAGE("_DEBUG_PREF_WEQS_2.1,%d", (*(dtracker->ContainerEntries))[DurabilityTracker::ContainerKey(actor)].size());
+			//_MESSAGE("_DEBUG_PREF_WEQS_2.1,%d", (*(dtracker->ContainerEntries))[DurabilityTracker::ContainerKey(actor)].size());
 			for (auto it = (*(dtracker->ContainerEntries))[DurabilityTracker::ContainerKey(actor)].begin(); it != (*(dtracker->ContainerEntries))[DurabilityTracker::ContainerKey(actor)].end(); it++)
 			{
-				_MESSAGE("_DEBUG_PREF_WEQS_3,%d", i++);
+				//_MESSAGE("_DEBUG_PREF_WEQS_3,%d", i++);
 				FormIDMatcher match(it->first);
 				EquipData equipData = pToContRefExC->FindEquipped(match);
 				ExtraContainerChanges::EquipItemData foundData;
 
 				if (equipData.pForm)
 				{
-					_MESSAGE("_DEBUG_PREF_WEQS_3.1,%d,%d", i, equipData.pForm->formID);
-					_MESSAGE("_DEBUG_PREF_WEQS_4");
+					//_MESSAGE("_DEBUG_PREF_WEQS_3.1,%d,%d", i, equipData.pForm->formID);
+					//_MESSAGE("_DEBUG_PREF_WEQS_4");
 					SInt32 itemId = CalcItemId(equipData.pForm, equipData.pExtraData);
 					pToContRefExC->data->GetEquipItemData(foundData, equipData.pForm, itemId);
 
 					if ((foundData.itemCount >= 0) && foundData.isItemWorn)
 					{
-						_MESSAGE("_DEBUG_PREF_WEQS_5");
-						SetState(equipData.pForm, LookupDurabilityInfo(equipData.pForm), LookupDurabilityInfo(equipData.pForm), foundData.isItemWornLeft ? kLeftHand : kRightHand);
+						//_MESSAGE("_DEBUG_PREF_WEQS_5");
+						SetState(equipData.pForm, LookupDurabilityInfo(equipData.pForm), LookupDurabilityInfo(equipData.pForm), foundData.isItemWornLeft ? kLeftHand : kRightHand, 0);
 					}
 				}
 			}
 
 			for (UInt8 j = 0; j < 18; j++)
 			{
-				_MESSAGE("_DEBUG_PREF_WEQS_6,j:%d,id:%d,m:%d,d:%d", j, std::get<0>(EquippedEntries[j]) == nullptr ? 0 : std::get<0>(EquippedEntries[j])->formID, std::get<1>(EquippedEntries[j]), std::get<2>(EquippedEntries[j]));
+				//_MESSAGE("_DEBUG_PREF_WEQS_6,j:%d,id:%d,m:%d,d:%d", j, std::get<0>(EquippedEntries[j]) == nullptr ? 0 : std::get<0>(EquippedEntries[j])->formID, std::get<1>(EquippedEntries[j]), std::get<2>(EquippedEntries[j]));
 			}
 
 			return true;
 		}
 	};
 
+	class CurrentGroundKey
+	{
+	public:
+		DurabilityTracker::GroundKey key;
+		void SetGroundKey(TESObjectREFR * obj)
+		{
+			UInt32 hash = obj->CreateRefHandle();
+			key.sethashKey(hash);
+		}
+		
+		DurabilityTracker::GroundKey GetGroundKey() const
+		{
+			return key;
+		}
+	};
 	//utils functions (obselete?) (probably, it's not like I really cared about the backend representation or anything, baka!)
 	//void MarkTESContainerZero(StaticFunctionTag *base, TESObjectREFR* contRef);
 	//void outputToOpenDebugLog(StaticFunctionTag *base, BSFixedString msg);
 	//void GetContainerReady(StaticFunctionTag *base, TESObjectREFR* contRef);
 	//void UpdateContainer(StaticFunctionTag *base, TESObjectREFR* contRef);
+
+	bool IncrementEquippedDurability(StaticFunctionTag* base, UInt32 slot, SInt32 amount, TESObjectREFR* actor);
+	bool DecrementEquippedDurability(StaticFunctionTag* base, UInt32 slot, SInt32 amount, TESObjectREFR* actor);
 };
 
 #endif

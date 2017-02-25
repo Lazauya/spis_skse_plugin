@@ -286,7 +286,7 @@ namespace plugin_spis
 		return outmap;
 	}
 
-	void SerializeFormUInt32UInt32Tuple(SKSESerializationInterface * intfc, std::tuple<TESForm*, UInt32, UInt32> tup)
+	void SerializeFormUInt32UInt32UInt32Tuple(SKSESerializationInterface * intfc, std::tuple<TESForm*, UInt32, UInt32, UInt32> tup)
 	{
 		//SerializeTESForm(std::get<0>(tup), intfc);
 		UInt32 id = std::get<0>(tup) == nullptr ? 0 : std::get<0>(tup)->formID, max = std::get<1>(tup) ? std::get<1>(tup) : 0, dur = std::get<2>(tup) ? std::get<2>(tup) : 0;
@@ -296,6 +296,8 @@ namespace plugin_spis
 		_MESSAGE("_DEBUG_PREF_SFUU_2,%d", std::get<1>(tup));
 		intfc->WriteRecordData(&dur, sizeof(UInt32));
 		_MESSAGE("_DEBUG_PREF_SFUU_3,%d", std::get<2>(tup));
+		intfc->WriteRecordData(&dur, sizeof(UInt32));
+		_MESSAGE("_DEBUG_PREF_SFUU_4,%d", std::get<3>(tup));
 	}
 	
 	void SerializeEquippedStates(SKSESerializationInterface * intfc, EquippedStates * equips)
@@ -303,14 +305,14 @@ namespace plugin_spis
 		intfc->OpenRecord(kTypeEquippedStates, 0);
 		for (UInt32 i = 0; i < 18; i++)
 		{
-			SerializeFormUInt32UInt32Tuple(intfc, equips->EquippedEntries[i]);
+			SerializeFormUInt32UInt32UInt32Tuple(intfc, equips->EquippedEntries[i]);
 		}
 		intfc->WriteRecordData(&(equips->twoHanded), sizeof(bool));
 	}
 
-	std::tuple<TESForm*, UInt32, UInt32> UnserializeFormUInt32UInt32Tuple(SKSESerializationInterface * intfc)
+	std::tuple<TESForm*, UInt32, UInt32, UInt32> UnserializeFormUInt32UInt32Tuple(SKSESerializationInterface * intfc)
 	{
-		UInt32 outid, dur, maxdur;
+		UInt32 outid, dur, maxdur, nth;
 		intfc->ReadRecordData(&outid, sizeof(UInt32));
 		TESForm * outform = LookupFormByID(outid);
 		_MESSAGE("_DEBUG_PREF_UFUU_1,%d", outform == nullptr ? 0 : outform->formID);
@@ -318,7 +320,9 @@ namespace plugin_spis
 		_MESSAGE("_DEBUG_PREF_UFUU_2,%d", maxdur);
 		intfc->ReadRecordData(&dur, sizeof(UInt32));
 		_MESSAGE("_DEBUG_PREF_UFUU_3,%d", dur);
-		return std::tuple<TESForm*, UInt32, UInt32>(outform, maxdur, dur);
+		intfc->ReadRecordData(&nth, sizeof(UInt32));
+		_MESSAGE("_DEBUG_PREF_UFUU_4,%d", nth);
+		return std::tuple<TESForm*, UInt32, UInt32, UInt32>(outform, maxdur, dur, nth);
 	}
 
 	EquippedStates UnserializeEquippedStates(SKSESerializationInterface * intfc)
