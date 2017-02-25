@@ -93,12 +93,6 @@ namespace plugin_spis
 	public:
 		
 		DurabilityTracker();
-		/*{
-			//_MESSAGE("_DEBUG_PREF_INIT_init called");
-			GroundEntries = new std::unordered_map< GroundKey, GroundValue, GroundKeyHash >;
-			//_MESSAGE("_DEBUG_PPEF_INIT_ground entries just declared");
-			ContainerEntries = new std::unordered_map < ContainerKey, std::unordered_map<TESForm*, ContainerValue, TESFormHash, TESFormEquality>, ContainerKeyHash >;
-		}*/
 
 		//structures for ground maps
 
@@ -202,9 +196,7 @@ namespace plugin_spis
 		{
 			std::size_t operator()(const ContainerKey& k) const
 			{
-				////_MESSAGE("_DEBUG_PREF_CTKH_invoked");
 				const TESObjectREFR* ttorp = k.getContainerRef();
-				////_MESSAGE("_DEBUG_PREF_CTKH_gotconstval, refcount:%d", ttorp->CreateRefHandle());
 				const UInt32 outhash = const_cast<TESObjectREFR*>(ttorp)->CreateRefHandle();
 				return outhash;
 			}
@@ -218,14 +210,11 @@ namespace plugin_spis
 				const UInt32 outhash1 = k.gethashKey();
 				if (outhash1)
 				{
-					_MESSAGE("_DEBUG_PREF_GKYH_1kh:%d", outhash1);
 					return outhash1;
 				}
 				
 				const TESObjectREFR* ttorp = k.getObjectRef();
-				////_MESSAGE("_DEBUG_PREF_CTKH_gotconstval, refcount:%d", ttorp->CreateRefHandle());
 				const UInt32 outhash = const_cast<TESObjectREFR*>(ttorp)->CreateRefHandle();
-				_MESSAGE("_DEBUG_PREF_GKYH_2kh:%d", outhash);
 				return outhash;
 			}
 		};
@@ -241,7 +230,7 @@ namespace plugin_spis
 			1 - ground
 			2 - ground to container (move only)
 			3 - container to ground (move only)
-			4 - container, use CurrentGroundKey
+			4 - container, use CurrentGroundKey (only relevant for RemoveEntry)
 		*/
 
 		/*

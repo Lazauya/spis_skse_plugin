@@ -38,7 +38,7 @@ Event OnItemAdded(Form akBaseItem, int aiItemCount, ObjectReference akItemRefere
 			plugin_spis.SetCurrentGroundKeyNull()
 		Else
 			Debug.Trace("_DEBUG_PREF_DTRK_ia2")
-			plugin_spis.MoveEntry(4, akSourceContainer, (PlayerREF as ObjectReference), akBaseItem, akItemReference, aiItemCount, 0, 0)
+			plugin_spis.MoveEntry(2, akSourceContainer, (PlayerREF as ObjectReference), akBaseItem, akItemReference, aiItemCount, 0, 0)
 		EndIf
 	EndIf
 EndEvent

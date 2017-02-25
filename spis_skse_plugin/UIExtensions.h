@@ -36,13 +36,15 @@ void GetExtras(GFxFunctionHandler::Args * args, plugin_spis::DurabilityTracker *
 	//calculate/get nth
 	UInt32 nth = 0;
 
-	for (UInt32 i = jth; i > 0; i--)
+	for (SInt32 i = SInt32(jth); i >= 0; i--)
 	{
 		if ((durabilities[jth].first == durabilities[i].first) && (durabilities[jth].second == durabilities[i].second))
 		{
 			nth++;
 		}
 	}
+
+	nth--;
 		
 	RegisterNumber(obj, "nth", double(nth));
 

@@ -3,12 +3,6 @@
 #include "SpisSerializations.h"
 #include "UIExtensions.h"
 
-/*#include "skse/GameRTTI.h"
-#include "skse/GameObjects.h"
-#include "skse/GameData.h"
-#include "skse/GameTypes.h"
-#include "skse/GameAPI.h"*/
-
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -242,7 +236,7 @@ namespace plugin_spis
 			return true;
 		}
 
-		std::vector<std::pair<UInt32, UInt32> > durs = (*ContainerEntries)[ContainerKey(container)][item].Durabilities;
+		//std::vector<std::pair<UInt32, UInt32> > durs;
 
 		ContainerKey tempContKey(container);
 		GroundKey tempGroundKey;
@@ -257,11 +251,11 @@ namespace plugin_spis
 				{
 					if ((*ContainerEntries)[tempContKey].count(item) && (FindEntryContainer(removeType, container, item, durability, maxDurability, nth) > -1))
 					{
-						if (globalEquippedStates->FindInList(item, durs[FindEntryContainer(removeType, container, item, durability, maxDurability, nth)].second, durs[FindEntryContainer(removeType, container, item, durability, maxDurability, nth)].first, nth))
+						if (globalEquippedStates->FindInList(item, (*ContainerEntries)[ContainerKey(container)][item].Durabilities[FindEntryContainer(removeType, container, item, durability, maxDurability, nth)].second, (*ContainerEntries)[ContainerKey(container)][item].Durabilities[FindEntryContainer(removeType, container, item, durability, maxDurability, nth)].first, nth))
 						{
 							for (UInt32 i = 0; i < 18; i++)
 							{
-								for (UInt32 j = 0; j < durs.size(); j++)
+								for (UInt32 j = 0; j < (*ContainerEntries)[ContainerKey(container)][item].Durabilities.size(); j++)
 								{
 									if (std::get<0>(globalEquippedStates->EquippedEntries[i]) == item || (*ContainerEntries)[tempContKey][item].Durabilities[j].first == std::get<1>(globalEquippedStates->EquippedEntries[i]) || (*ContainerEntries)[tempContKey][item].Durabilities[j].second == std::get<2>(globalEquippedStates->EquippedEntries[i]))
 									{
@@ -273,7 +267,7 @@ namespace plugin_spis
 
 						(*ContainerEntries)[tempContKey][item].Durabilities.erase((*ContainerEntries)[tempContKey][item].Durabilities.begin() + FindEntryContainer(removeType, container, item, durability, maxDurability, nth));
 						(*ContainerEntries)[tempContKey][item].count -= amount;
-						if (durs.size() == 0)
+						if ((*ContainerEntries)[ContainerKey(container)][item].Durabilities.size() == 0)
 						{
 							(*ContainerEntries)[tempContKey].erase(item);
 							return true;
@@ -317,19 +311,17 @@ namespace plugin_spis
 
 	bool DurabilityTracker::MoveEntry(UInt8 space, TESObjectREFR * containerFrom, TESObjectREFR * containerTo, TESForm * item, TESObjectREFR * groundItem, UInt32 amount, UInt32 durability, UInt32 maxDurability, UInt32 nth)
 	{
-
 		if (!amount)
 		{
 			return true;
 		}
-
 		bool c1 = false;
 		bool c2 = false;
 		UInt32 t_maxdurabil;
 		UInt32 t_durability;
-
-		std::vector<std::pair<UInt32, UInt32> > durs = (*ContainerEntries)[ContainerKey(containerFrom)][item].Durabilities;
-
+		TESObjectREFR * gkr = nullptr;
+		UInt32 hk = globalCurrentGroundKey->GetGroundKey().gethashKey();
+		UInt32 thk = hk;
 		switch (space)
 		{
 		case 0:
@@ -345,55 +337,45 @@ namespace plugin_spis
 			return false; //invalid, this doesn't make sense because obj ref is static (and coords are just pointers) so no movement "between" world space can occur
 
 		case 2:
-			if (!containerTo || !groundItem || !amount)
+			if (hk)
 			{
-				return false;
+				LookupREFRByHandle(&(hk), &gkr);
 			}
-			if (GroundEntries->count(FindEntryGround(groundItem, 0)))
+
+			if ((gkr != 0) || !thk)
 			{
-				t_maxdurabil = (*GroundEntries)[FindEntryGround(groundItem, durability)].first;
-				t_durability = (*GroundEntries)[FindEntryGround(groundItem, durability)].second; //need this because durability is passed by durability associated w/ specific object reference
-				c2 = RemoveEntry(1, containerFrom, groundItem->baseForm, groundItem, amount, 0, t_durability, t_maxdurabil);
-				c1 = AddEntry(0, containerTo, groundItem->baseForm, groundItem, amount, t_durability, t_maxdurabil);
+				AddEntry(0, containerTo, item, groundItem, amount, LookupDurabilityInfo(item), LookupDurabilityInfo(item));
+				return true;
 			}
 			else
 			{
-				AddEntry(0, containerTo, groundItem->baseForm, groundItem, amount, LookupDurabilityInfo(item), LookupDurabilityInfo(item));
+				if (((*GroundEntries)[globalCurrentGroundKey->GetGroundKey()].first == 0) && ((*GroundEntries)[globalCurrentGroundKey->GetGroundKey()].second))
+				{
+					AddEntry(0, containerTo, item, groundItem, amount, LookupDurabilityInfo(item), LookupDurabilityInfo(item));
+				}
+				else
+				{
+					t_maxdurabil = (*GroundEntries)[globalCurrentGroundKey->GetGroundKey()].first;
+					t_durability = (*GroundEntries)[globalCurrentGroundKey->GetGroundKey()].second;
+
+					//uses special remove that just checks currentgroundkey for item in question
+					c1 = AddEntry(0, containerTo, item, groundItem, amount, t_durability, t_maxdurabil);
+					c2 = RemoveEntry(4, containerFrom, item, groundItem, amount, 0, 0, 0);
+
+					return c1 && c2;
+				}
 			}
-			return c1 && c2;
 
 		case 3:
 			if (!containerFrom || !item || !groundItem || !amount || !durability || !maxDurability)
 			{
 				return false;
 			}
-			c1 = AddEntry(1, containerTo, item, groundItem, amount, durs[FindEntryContainer(0, containerFrom, item, durability, maxDurability, nth)].second, durs[FindEntryContainer(0, containerFrom, item, durability, maxDurability, nth)].first);
+			c1 = AddEntry(1, containerTo, item, groundItem, amount, (*ContainerEntries)[ContainerKey(containerFrom)][item].Durabilities[FindEntryContainer(0, containerFrom, item, durability, maxDurability, nth)].second, (*ContainerEntries)[ContainerKey(containerFrom)][item].Durabilities[FindEntryContainer(0, containerFrom, item, durability, maxDurability, nth)].first);
 			globalCurrentGroundKey->SetGroundKey(groundItem);
 			c2 = RemoveEntry(0, containerFrom, item, groundItem, amount, 0, durability, maxDurability, nth);
 			
 			return c1 && c1;
-
-		case 4:
-
-			if (!containerTo || !item || !amount)
-			{
-				return false;
-			}
-		
-			if (((*GroundEntries)[globalCurrentGroundKey->GetGroundKey()].second == 0) && ((*GroundEntries)[globalCurrentGroundKey->GetGroundKey()].first == 0))
-			{
-				t_maxdurabil = LookupDurabilityInfo(item);
-				t_durability = LookupDurabilityInfo(item);
-			}
-			else
-			{
-				t_maxdurabil = (*GroundEntries)[globalCurrentGroundKey->GetGroundKey()].first;
-				t_durability = (*GroundEntries)[globalCurrentGroundKey->GetGroundKey()].second;
-			}
-			//uses special remove that just checks currentgroundkey for item in question
-			c1 = AddEntry(0, containerTo, item, groundItem, amount, t_durability, t_maxdurabil);
-			c2 = RemoveEntry(4, containerFrom, item, groundItem, amount, 0, 0, 0);
-			return c1 && c2;
 		}
 	}
 
