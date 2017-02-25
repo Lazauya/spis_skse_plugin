@@ -11,7 +11,7 @@
 #include "skse/GameData.h"
 #include "skse/GameTypes.h"
 
-#include "UIExtensions.h"
+//#include "UIExtensions.h"
 
 #include "skse/ScaleformExtendedData.h"
 

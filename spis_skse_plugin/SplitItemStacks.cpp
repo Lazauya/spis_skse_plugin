@@ -1,7 +1,7 @@
 #include "SplitItemStacks.h"
 #include "SpisBasicUtils.h"
 #include "SpisSerializations.h"
-//#include "UIExtensions.h"
+#include "UIExtensions.h"
 
 /*#include "skse/GameRTTI.h"
 #include "skse/GameObjects.h"
@@ -28,6 +28,7 @@ namespace plugin_spis
 	CurrentDurability * globalCurrentDurability;
 	EquippedStates * globalEquippedStates;
 	CurrentGroundKey * globalCurrentGroundKey;
+	
 	bool isInitialized = false;
 
 	//durabilitytracker function defines, some are deprecated and commented (because I'm a code hoarder)
@@ -680,77 +681,15 @@ namespace plugin_spis
 	{
 		virtual void Invoke(Args * args)
 		{
-			////_MESSAGE("_DEBUG_PREF_SCDG_invoked");
-			
-			GFxValue * obj		= &args->args[0];
-			GFxValue * index	= &args->args[1];
-			GFxValue   formId;
-			obj->GetMember("formId", &formId);
-			//_MESSAGE("_DEBUG_PREF_SCDG_formId:%d", UInt32(formId.GetNumber()));
-			// ### UNCOMPRESSED CODE
-			UInt32 tid = UInt32(formId.GetNumber());
-			TESObjectREFR* cc = globalCurrentContainer->GetContainer();
-			//////_MESSAGE("_DEBUG_PREF_SCDG_ccfId:%d", cc->baseForm->formID);
-			// ### UNCOMPRESSED CODE END
-			if ((*globalDurabilityTracker->ContainerEntries)[cc].count(LookupFormByID(tid)))
-			{
-				DurabilityTracker::ContainerValue * entries = globalDurabilityTracker->FindDurabilityContainer(globalCurrentContainer->GetContainer(), UInt32(formId.GetNumber()));
-
-				UInt32 ind = index->GetNumber();
-
-				//_MESSAGE("_DEBUG_PREF_SCDG_formId:%d", UInt32(formId.GetNumber()));
-				//_MESSAGE("_DEBUG_PREF_SCDG_ind:%d", ind);
-				//_MESSAGE("_DEBUG_PREF_SCDG_md:%d", entries->Durabilities[ind].first);
-				//_MESSAGE("_DEBUG_PREF_SCDG_d:%d", entries->Durabilities[ind].second);
-
-				RegisterNumber(obj, "maxDurability", entries->Durabilities[ind].first);
-				RegisterNumber(obj, "durability", entries->Durabilities[ind].second);
-			}
+			GetExtras(args, globalDurabilityTracker, globalCurrentContainer, globalEquippedStates);
 		}
 	};
 
-	class SKSEScaleform_SetCurrentMaxDurability : public GFxFunctionHandler
+	class SKSEScaleform_SetCurrentDurabilities : public GFxFunctionHandler
 	{
 		virtual void Invoke(Args * args)
 		{
-			globalCurrentDurability->SetMaxDurability(args->args[0].GetNumber());
-		}
-	};
-
-	class SKSEScaleform_SetCurrentDurability : public GFxFunctionHandler
-	{
-		virtual void Invoke(Args * args)
-		{
-			globalCurrentDurability->SetDurability(args->args[0].GetNumber());
-		}
-	};
-
-	class SKSEScaleform_GetEquippedState : public GFxFunctionHandler
-	{
-		virtual void Invoke(Args * args)
-		{
-			//_MESSAGE("_DEBUG_PREF_SCGE_1");
-			GFxValue * obj = &args->args[0];
-			GFxValue * tmaxdur = &args->args[1];
-			GFxValue * tdur = &args->args[2];
-			GFxValue * tformid = &args->args[3];
-			GFxValue equipState;
-			GFxValue * tnth = &args->args[4];
-			UInt32 fd = tformid->GetNumber();
-			//_MESSAGE("_DEBUG_PREF_SCGE_1.1,%d", fd);
-			//_MESSAGE("_DEBUG_PREF_SCGE_1.1,%d", tformid->GetNumber());
-			//_MESSAGE("_DEBUG_PREF_SCGE_1.2,%d", tmaxdur->GetNumber());
-			//_MESSAGE("_DEBUG_PREF_SCGE_1.3,%d", tdur->GetNumber());
-			//_MESSAGE("_DEBUG_PREF_SCGE_1.4,%d", tnth->GetNumber());
-			////_MESSAGE("_DEBUG_PREF_SCGE_1.5,%d", tformid->GetNumber());
-			////_MESSAGE("_DEBUG_PREF_SCGE_1.1,%d", tformid.GetNumber());
-			//obj->GetMember("maxDurability", &tmaxdur); //_MESSAGE("_DEBUG_PREF_SCGE_1.2");
-			//obj->GetMember("durability", &tdur); //_MESSAGE("_DEBUG_PREF_SCGE_1.3");
-			//obj->GetMember("formId", &tformid); 
-			//obj->GetMember("nth", &tnth); //_MESSAGE("_DEBUG_PREF_SCGE_1.5");
-			equipState.SetNumber(globalEquippedStates->FindInList(LookupFormByID(UInt32(tformid->GetNumber())), UInt32(tdur->GetNumber()), UInt32(tmaxdur->GetNumber()), UInt32(tnth->GetNumber())));
-			obj->SetMember("equipState", &equipState);
-			//_MESSAGE("_DEBUG_PREF_SCGE_2");
+			SetCurrentDurabilities(args, globalCurrentDurability);
 		}
 	};
 
@@ -758,14 +697,7 @@ namespace plugin_spis
 	{
 		virtual void Invoke(Args * args)
 		{
-			//_MESSAGE("_DEBUG_PREF_SCSQ_invoked");
-			TESForm * form = LookupFormByID(args->args[0].GetNumber());
-			UInt32 maxdur = args->args[1].GetNumber();
-			UInt32 dur = args->args[2].GetNumber();
-			UInt32 hand = args->args[3].GetNumber();
-			UInt32 n = args->args[4].GetNumber();
-			//_MESSAGE("_DEBUG_PREF_SCSQ_%d,%d,%d,%d", args->args[0].GetNumber(), maxdur, dur, hand);
-			globalEquippedStates->SetState(form, maxdur, dur, hand, n);
+			SetEquippedState(args, globalEquippedStates);
 		}
 	};
 
@@ -870,15 +802,11 @@ namespace plugin_spis
 
 	bool RegisterFuncsScaleform(GFxMovieView * view, GFxValue * root)
 	{
-		//RegisterFunction <SKSEScaleform_ExampleFunction>(root, view, "ExampleFunction");
 
 		RegisterFunction <SKSEScaleform_GetExtras>(root, view, "GetExtras");
 
-		RegisterFunction <SKSEScaleform_SetCurrentMaxDurability>(root, view, "SetCurrentMaxDurability");
+		RegisterFunction <SKSEScaleform_SetCurrentDurabilities>(root, view, "SetCurrentDurabilities");
 
-		RegisterFunction <SKSEScaleform_SetCurrentDurability>(root, view, "SetCurrentDurability");
-
-		RegisterFunction <SKSEScaleform_GetEquippedState>(root, view, "GetEquippedState");
 
 		RegisterFunction <SKSEScaleform_SetEquippedState>(root, view, "SetEquippedState");
 
