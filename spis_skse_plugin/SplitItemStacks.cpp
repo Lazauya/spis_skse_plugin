@@ -19,10 +19,7 @@ typedef tList<ExtraContainerChanges::EntryData> EntryDataList;
 
 namespace plugin_spis
 {
-	
-	
 	//global trackers, created at runtime
-
 	DurabilityTracker * globalDurabilityTracker;
 	CurrentContainer * globalCurrentContainer;
 	CurrentDurability * globalCurrentDurability;
@@ -53,14 +50,16 @@ namespace plugin_spis
 		SInt32 nthhighest = -1;
 		UInt32 n = 0;
 
+		std::vector<std::pair<UInt32, UInt32> > durs = (*ContainerEntries)[ContainerKey(container)][item].Durabilities;
+
 		if (ContainerEntries->count(ContainerKey(container)))
 		{
 			switch (findType)
 			{
 				case 0:
-					for (SInt32 retIndex = 0; retIndex < (*ContainerEntries)[ContainerKey(container)][item].Durabilities.size(); retIndex++)
+					for (SInt32 retIndex = 0; retIndex < durs.size(); retIndex++)
 					{
-						if ((*ContainerEntries)[ContainerKey(container)][item].Durabilities[retIndex].second == durability)
+						if (durs[retIndex].second == durability)
 						{
 							if (n++ == nth)
 							{
@@ -71,12 +70,12 @@ namespace plugin_spis
 					return -1;
 
 				case 1:
-					for (SInt32 retIndex = 0; retIndex < (*ContainerEntries)[ContainerKey(container)][item].Durabilities.size(); retIndex++)
+					for (SInt32 retIndex = 0; retIndex < durs.size(); retIndex++)
 					{
-						UInt32 tempDurComp = (*ContainerEntries)[ContainerKey(container)][item].Durabilities[retIndex].second;
-						if (tempDurComp <= (*ContainerEntries)[ContainerKey(container)][item].Durabilities[lowest].second)
+						UInt32 tempDurComp = durs[retIndex].second;
+						if (tempDurComp <= durs[lowest].second)
 						{
-							if (tempDurComp == (*ContainerEntries)[ContainerKey(container)][item].Durabilities[lowest].second)
+							if (tempDurComp == durs[lowest].second)
 							{
 								if (n++ == nth)
 								{
@@ -93,7 +92,7 @@ namespace plugin_spis
 					}
 					if (nthlowest > -1)
 					{
-						if ((*ContainerEntries)[ContainerKey(container)][item].Durabilities[lowest].second == (*ContainerEntries)[ContainerKey(container)][item].Durabilities[nthlowest].second)
+						if (durs[lowest].second == durs[nthlowest].second)
 						{
 							return nthlowest;
 						}
@@ -101,12 +100,12 @@ namespace plugin_spis
 					return lowest;
 
 				case 2:
-					for (SInt32 retIndex = 0; retIndex < (*ContainerEntries)[ContainerKey(container)][item].Durabilities.size(); retIndex++)
+					for (SInt32 retIndex = 0; retIndex < durs.size(); retIndex++)
 					{
-						UInt32 tempDurComp = (*ContainerEntries)[ContainerKey(container)][item].Durabilities[retIndex].second;
-						if (tempDurComp >= (*ContainerEntries)[ContainerKey(container)][item].Durabilities[highest].second)
+						UInt32 tempDurComp = durs[retIndex].second;
+						if (tempDurComp >= durs[highest].second)
 						{
-							if (tempDurComp == (*ContainerEntries)[ContainerKey(container)][item].Durabilities[highest].second)
+							if (tempDurComp == durs[highest].second)
 							{
 								if (n++ == nth)
 								{
@@ -123,7 +122,7 @@ namespace plugin_spis
 					}
 					if (nthhighest > -1)
 					{
-						if ((*ContainerEntries)[ContainerKey(container)][item].Durabilities[highest].second == (*ContainerEntries)[ContainerKey(container)][item].Durabilities[nthhighest].second)
+						if (durs[highest].second == durs[nthhighest].second)
 						{
 							return nthhighest;
 						}
@@ -235,12 +234,15 @@ namespace plugin_spis
 
 	}
 
+	// 8^( this will 4evr b spaghetti
 	bool DurabilityTracker::RemoveEntry(UInt8 space, TESObjectREFR * container, TESForm * item, TESObjectREFR * groundItem, UInt32 amount, UInt8 removeType, UInt32 durability, UInt32 maxDurability, UInt32 nth)
 	{
 		if (!amount)
 		{
 			return true;
 		}
+
+		std::vector<std::pair<UInt32, UInt32> > durs = (*ContainerEntries)[ContainerKey(container)][item].Durabilities;
 
 		ContainerKey tempContKey(container);
 		GroundKey tempGroundKey;
@@ -255,11 +257,11 @@ namespace plugin_spis
 				{
 					if ((*ContainerEntries)[tempContKey].count(item) && (FindEntryContainer(removeType, container, item, durability, maxDurability, nth) > -1))
 					{
-						if (globalEquippedStates->FindInList(item, (*ContainerEntries)[tempContKey][item].Durabilities[FindEntryContainer(removeType, container, item, durability, maxDurability, nth)].second, (*ContainerEntries)[tempContKey][item].Durabilities[FindEntryContainer(removeType, container, item, durability, maxDurability, nth)].first, nth))
+						if (globalEquippedStates->FindInList(item, durs[FindEntryContainer(removeType, container, item, durability, maxDurability, nth)].second, durs[FindEntryContainer(removeType, container, item, durability, maxDurability, nth)].first, nth))
 						{
 							for (UInt32 i = 0; i < 18; i++)
 							{
-								for (UInt32 j = 0; j < (*ContainerEntries)[tempContKey][item].Durabilities.size(); j++)
+								for (UInt32 j = 0; j < durs.size(); j++)
 								{
 									if (std::get<0>(globalEquippedStates->EquippedEntries[i]) == item || (*ContainerEntries)[tempContKey][item].Durabilities[j].first == std::get<1>(globalEquippedStates->EquippedEntries[i]) || (*ContainerEntries)[tempContKey][item].Durabilities[j].second == std::get<2>(globalEquippedStates->EquippedEntries[i]))
 									{
@@ -271,7 +273,7 @@ namespace plugin_spis
 
 						(*ContainerEntries)[tempContKey][item].Durabilities.erase((*ContainerEntries)[tempContKey][item].Durabilities.begin() + FindEntryContainer(removeType, container, item, durability, maxDurability, nth));
 						(*ContainerEntries)[tempContKey][item].count -= amount;
-						if ((*ContainerEntries)[tempContKey][item].Durabilities.size() == 0)
+						if (durs.size() == 0)
 						{
 							(*ContainerEntries)[tempContKey].erase(item);
 							return true;
@@ -325,6 +327,9 @@ namespace plugin_spis
 		bool c2 = false;
 		UInt32 t_maxdurabil;
 		UInt32 t_durability;
+
+		std::vector<std::pair<UInt32, UInt32> > durs = (*ContainerEntries)[ContainerKey(containerFrom)][item].Durabilities;
+
 		switch (space)
 		{
 		case 0:
@@ -335,8 +340,10 @@ namespace plugin_spis
 			c1 = AddEntry(space, containerTo, item, groundItem, amount, durability, (*ContainerEntries)[ContainerKey(containerFrom)][item].Durabilities[FindEntryContainer(0, containerFrom, item, durability, maxDurability, nth)].first);
 			c2 = RemoveEntry(space, containerFrom, item, groundItem, amount, 0, durability, maxDurability, nth);
 			return c1 && c2;
+
 		case 1:
 			return false; //invalid, this doesn't make sense because obj ref is static (and coords are just pointers) so no movement "between" world space can occur
+
 		case 2:
 			if (!containerTo || !groundItem || !amount)
 			{
@@ -354,16 +361,18 @@ namespace plugin_spis
 				AddEntry(0, containerTo, groundItem->baseForm, groundItem, amount, LookupDurabilityInfo(item), LookupDurabilityInfo(item));
 			}
 			return c1 && c2;
+
 		case 3:
 			if (!containerFrom || !item || !groundItem || !amount || !durability || !maxDurability)
 			{
 				return false;
 			}
-			c1 = AddEntry(1, containerTo, item, groundItem, amount, (*ContainerEntries)[ContainerKey(containerFrom)][item].Durabilities[FindEntryContainer(0, containerFrom, item, durability, maxDurability, nth)].second, (*ContainerEntries)[ContainerKey(containerFrom)][item].Durabilities[FindEntryContainer(0, containerFrom, item, durability, maxDurability, nth)].first);
+			c1 = AddEntry(1, containerTo, item, groundItem, amount, durs[FindEntryContainer(0, containerFrom, item, durability, maxDurability, nth)].second, durs[FindEntryContainer(0, containerFrom, item, durability, maxDurability, nth)].first);
 			globalCurrentGroundKey->SetGroundKey(groundItem);
 			c2 = RemoveEntry(0, containerFrom, item, groundItem, amount, 0, durability, maxDurability, nth);
 			
 			return c1 && c1;
+
 		case 4:
 
 			if (!containerTo || !item || !amount)
