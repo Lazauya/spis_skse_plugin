@@ -44,10 +44,13 @@ namespace plugin_spis
 		return GroundKey(item);
 	}
 
+	//untested function, if there's a problem look here first
 	SInt32 DurabilityTracker::FindEntryContainer(UInt8 findType, TESObjectREFR * container, TESForm * item, UInt32 durability, UInt32 maxDurability, UInt32 nth = 0)
 	{
-		SInt32 lowest = 0;
-		SInt32 highest = 0;
+		SInt32 lowest = -1;
+		SInt32 nthlowest = -1;
+		SInt32 highest = -1;
+		SInt32 nthhighest = -1;
 		UInt32 n = 0;
 
 		if (ContainerEntries->count(ContainerKey(container)))
@@ -59,9 +62,8 @@ namespace plugin_spis
 					{
 						if ((*ContainerEntries)[ContainerKey(container)][item].Durabilities[retIndex].second == durability)
 						{
-							if (n == nth)
+							if (n++ == nth)
 							{
-								n++;
 								return retIndex;
 							}
 						}
@@ -72,19 +74,58 @@ namespace plugin_spis
 					for (SInt32 retIndex = 0; retIndex < (*ContainerEntries)[ContainerKey(container)][item].Durabilities.size(); retIndex++)
 					{
 						UInt32 tempDurComp = (*ContainerEntries)[ContainerKey(container)][item].Durabilities[retIndex].second;
-						if (tempDurComp == durability && tempDurComp < (*ContainerEntries)[ContainerKey(container)][item].Durabilities[lowest].second)
+						if (tempDurComp <= (*ContainerEntries)[ContainerKey(container)][item].Durabilities[lowest].second)
 						{
+							if (tempDurComp == (*ContainerEntries)[ContainerKey(container)][item].Durabilities[lowest].second)
+							{
+								if (n++ == nth)
+								{
+									nthlowest = retIndex;
+								}
+								else
+								{
+									n = 0;
+								}
+							}
+
 							lowest = retIndex;
 						}
 					}
+					if (nthlowest > -1)
+					{
+						if ((*ContainerEntries)[ContainerKey(container)][item].Durabilities[lowest].second == (*ContainerEntries)[ContainerKey(container)][item].Durabilities[nthlowest].second)
+						{
+							return nthlowest;
+						}
+					}
 					return lowest;
+
 				case 2:
 					for (SInt32 retIndex = 0; retIndex < (*ContainerEntries)[ContainerKey(container)][item].Durabilities.size(); retIndex++)
 					{
 						UInt32 tempDurComp = (*ContainerEntries)[ContainerKey(container)][item].Durabilities[retIndex].second;
-						if (tempDurComp == durability && tempDurComp >(*ContainerEntries)[ContainerKey(container)][item].Durabilities[highest].second)
+						if (tempDurComp >= (*ContainerEntries)[ContainerKey(container)][item].Durabilities[highest].second)
 						{
+							if (tempDurComp == (*ContainerEntries)[ContainerKey(container)][item].Durabilities[highest].second)
+							{
+								if (n++ == nth)
+								{
+									nthhighest = retIndex;
+								}
+							}
+							else
+							{
+								n = 0;
+							}
+
 							highest = retIndex;
+						}
+					}
+					if (nthhighest > -1)
+					{
+						if ((*ContainerEntries)[ContainerKey(container)][item].Durabilities[highest].second == (*ContainerEntries)[ContainerKey(container)][item].Durabilities[nthhighest].second)
+						{
+							return nthhighest;
 						}
 					}
 					return highest;
