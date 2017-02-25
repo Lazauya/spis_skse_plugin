@@ -97,5 +97,32 @@ void SetCurrentDurabilities(GFxFunctionHandler::Args * args, plugin_spis::Curren
 	cc->SetMaxDurability(maxDurability);
 }
 
+void IncrementDurability(GFxFunctionHandler::Args * args, plugin_spis::DurabilityTracker * dt, plugin_spis::CurrentContainer * cc)
+{
+	GFxValue * obj = &(args->args[0]);
+	GFxValue * amt = &(args->args[1]);
+	
+	GFxValue formIDTemp;
+	GFxValue nthTemp;
+	GFxValue maxDurabilityTemp;
+	GFxValue durabilityTemp;
+
+	obj->GetMember("formId", &formIDTemp);
+	obj->GetMember("nth", &nthTemp);
+	obj->GetMember("maxDurability", &maxDurabilityTemp);
+	obj->GetMember("durability", &durabilityTemp);
+
+	UInt32 nth = UInt32(nthTemp.GetNumber());
+	UInt32 formID = UInt32(formIDTemp.GetNumber());
+	UInt32 maxDurability = UInt32(maxDurabilityTemp.GetNumber());
+	UInt32 durability = UInt32(durabilityTemp.GetNumber());
+	SInt32 amount = SInt32(amt->GetNumber());
+	
+	SInt32 pos = dt->FindEntryContainer(0, cc->GetContainer(), LookupFormByID(formID), durability, maxDurability, nth);
+	if (pos > -1)
+	{
+		(*dt->ContainerEntries)[cc->GetContainer()][LookupFormByID(formID)].Durabilities[pos].second += amount;
+	}
+}
 
 #endif

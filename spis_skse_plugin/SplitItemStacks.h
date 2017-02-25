@@ -38,23 +38,55 @@ namespace plugin_spis
 	2 - move
 	*/
 
+	//misc funciton blueprints
 	UInt32 LookupDurabilityInfo(TESForm* item);
-	void ChangeEntries(StaticFunctionTag *base, UInt8 type, UInt8 space, TESObjectREFR * containerFrom, TESObjectREFR * containerTo, TESForm * item, UInt32 amount);
-
+	SInt32 CalcItemId(TESForm * form, BaseExtraList * extraList);
+	inline std::string int_to_hex(UInt32 i);
+	
+	//papyrus function blueprints
 	//large object initializer
 	bool InitializeDurabilityTracker(StaticFunctionTag *base);
 
+	//map handlers
+	bool AddEntry(StaticFunctionTag *base, UInt32 space, TESObjectREFR * container, TESForm * item, TESObjectREFR * groundItem, UInt32 amount, UInt32 durability, UInt32 maxDurability);
+	bool RemoveEntry(StaticFunctionTag *base, UInt32 space, TESObjectREFR * container, TESForm * item, TESObjectREFR * groundItem, UInt32 amount, UInt32 removeType, UInt32 durability, UInt32 maxDurability, UInt32 nth = 0);
+	bool MoveEntry(StaticFunctionTag *base, UInt32 space, TESObjectREFR * containerFrom, TESObjectREFR * containerTo, TESForm * item, TESObjectREFR * groundItem, UInt32 amount, UInt32 durability, UInt32 maxDurability, UInt32 nth = 0);
+	bool WrapEntries(StaticFunctionTag *base, TESObjectREFR* container);
+
+	//current container, used by papyrus to give scaleform container info
+	bool SetCurrentContainer(StaticFunctionTag *base, TESObjectREFR* container);
+	TESObjectREFR * GetCurrentContainer(StaticFunctionTag *base);
+
+	//current durabilities, used by scaleform to give nessecary info for move operations
+	UInt32 GetCurrentDurability(StaticFunctionTag *base);
+	UInt32 GetCurrentMaxDurability(StaticFunctionTag *base);
+
+	//initialize of equipstate array, only real relevant actor is player
+	bool WrapEquipStates(StaticFunctionTag * base, TESObjectREFR * actor);
+
+	//increments equipped durability, also decrement b/c of possible weirdness with papyrus and negative numbers
+	bool IncrementEquippedDurability(StaticFunctionTag* base, UInt32 slot, SInt32 amount, TESObjectREFR* actor);
+	bool DecrementEquippedDurability(StaticFunctionTag* base, UInt32 slot, SInt32 amount, TESObjectREFR* actor);
+
+	//current ground key, used in ground>container move operations because the item on ground dissapears too fast
+	//DurabilityTracker::GroundKey GetCurrentGroundKey(StaticFunctionTag * base); function blueprinted at bottom
+	bool IsCurrentGroundKeyNull(StaticFunctionTag * base);
+	bool SetCurrentGroundKeyNull(StaticFunctionTag * base);
+	bool SetCurrentGroundKey(StaticFunctionTag * base, TESObjectREFR * obj);
+
+	//debugging function
+	void PrintFound(StaticFunctionTag *base, UInt32 findType, TESObjectREFR * container, TESForm * item, UInt32 durability, UInt32 maxDurability, UInt32 nth = 0);
+
 	//serialization functions
-
-
+	void Serialization_Revert(SKSESerializationInterface * intfc);
+	void Serialization_Save(SKSESerializationInterface * intfc);
+	void Serialization_Load(SKSESerializationInterface * intfc);
 
 	//register
 	bool RegisterFuncsPapyrus(VMClassRegistry* registry);
 	bool RegisterFuncsScaleform(GFxMovieView * view, GFxValue * root);
 
 	bool RegisterSerializationCallbacks(SKSESerializationInterface * intfc, PluginHandle plgnhndl);
-
-	SInt32 CalcItemId(TESForm * form, BaseExtraList * extraList);
 
 	class DurabilityTracker
 	{
@@ -614,14 +646,10 @@ namespace plugin_spis
 			return key;
 		}
 	};
-	//utils functions (obselete?) (probably, it's not like I really cared about the backend representation or anything, baka!)
-	//void MarkTESContainerZero(StaticFunctionTag *base, TESObjectREFR* contRef);
-	//void outputToOpenDebugLog(StaticFunctionTag *base, BSFixedString msg);
-	//void GetContainerReady(StaticFunctionTag *base, TESObjectREFR* contRef);
-	//void UpdateContainer(StaticFunctionTag *base, TESObjectREFR* contRef);
+	
+	//the aforementioned blueprint
+	DurabilityTracker::GroundKey GetCurrentGroundKey(StaticFunctionTag * base);
 
-	bool IncrementEquippedDurability(StaticFunctionTag* base, UInt32 slot, SInt32 amount, TESObjectREFR* actor);
-	bool DecrementEquippedDurability(StaticFunctionTag* base, UInt32 slot, SInt32 amount, TESObjectREFR* actor);
 };
 
 #endif
