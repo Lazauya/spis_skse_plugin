@@ -1,5 +1,6 @@
 #include "skse/ScaleformCallbacks.h"
 #include "skse/ScaleformMovie.h"
+#include "skse/PapyrusForm.h"
 
 #include <shlobj.h>
 
@@ -9,6 +10,17 @@
 #ifndef uiext
 #define uiext
 
+/* function GetExtras(outObject: Object): Void
+gets some info that globalDurabilityTrackerProvides
+outObject MUST have:
+	formId
+	jth (this is the jth object with this formId, if you need a better xpl, ask)
+outObject recieves:
+	durability
+	maxDurability
+	nth
+	equipState (its modified from original value)
+*/
 void GetExtras(GFxFunctionHandler::Args * args, plugin_spis::DurabilityTracker * dt, plugin_spis::CurrentContainer * cc, plugin_spis::EquippedStates * es)
 {
 	GFxValue * obj = &(args->args[0]);
@@ -56,6 +68,19 @@ void GetExtras(GFxFunctionHandler::Args * args, plugin_spis::DurabilityTracker *
 	obj->SetMember("equipState", &equipStateTemp);
 }
 
+/* function SetEquippedState(itemToSet: Object, hand: Number): Void
+equips/unequips the object in globalEquippedStates
+itemToSet object MUST have:
+	formId
+	nth
+	maxDurability
+	durability
+
+hand can be:
+	0 - right
+	1 - left
+hand does not matter for 2 handed weapons and armor
+*/
 void SetEquippedState(GFxFunctionHandler::Args * args, plugin_spis::EquippedStates * es)
 {
 	GFxValue * obj = &(args->args[0]);
@@ -80,8 +105,12 @@ void SetEquippedState(GFxFunctionHandler::Args * args, plugin_spis::EquippedStat
 	es->SetState(LookupFormByID(formID), durability, maxDurability, hand, nth);
 }
 
-
-
+/* function SetCurrentDurabilities(itemToSet: Object): Void
+sets the durability and maxDurability that papyrus uses to make descisions
+itemToSet MUST have:
+	durability
+	maxDurability
+*/
 void SetCurrentDurabilities(GFxFunctionHandler::Args * args, plugin_spis::CurrentDurability * cc)
 {
 	GFxValue * obj = &(args->args[0]);
@@ -99,6 +128,14 @@ void SetCurrentDurabilities(GFxFunctionHandler::Args * args, plugin_spis::Curren
 	cc->SetMaxDurability(maxDurability);
 }
 
+/* function IncrementDurability(itemToIncrement: Object, amount: Number): Void
+adds/removes durability from items
+itemToIncrement object MUST have:
+	formId
+	nth
+	maxDurability
+	durability
+*/
 void IncrementDurability(GFxFunctionHandler::Args * args, plugin_spis::DurabilityTracker * dt, plugin_spis::CurrentContainer * cc)
 {
 	GFxValue * obj = &(args->args[0]);
@@ -124,6 +161,58 @@ void IncrementDurability(GFxFunctionHandler::Args * args, plugin_spis::Durabilit
 	if (pos > -1)
 	{
 		(*dt->ContainerEntries)[cc->GetContainer()][LookupFormByID(formID)].Durabilities[pos].second += amount;
+	}
+}
+
+/* function GetRepairList(outArray: Array): Void
+out array is the array that is modified
+objects in outArray have:
+	name
+	nth (the nth item with this durability, if you need a better expl, ask)
+	formId
+	durability
+*/
+void GetRepairList(GFxFunctionHandler::Args * args, plugin_spis::DurabilityTracker * dt, plugin_spis::CurrentContainer * cc)
+{
+	GFxValue * entryArray = &(args->args[0]);
+
+	GFxValue name;
+	GFxValue durability;
+	GFxValue formID;
+	GFxValue nth;
+
+	UInt32 n = 0;
+
+	auto itt = (*dt->ContainerEntries)[cc->GetContainer()].begin();
+
+	for (auto it = (*dt->ContainerEntries)[cc->GetContainer()].begin(); it != (*dt->ContainerEntries)[cc->GetContainer()].end(); it++)
+	{
+		GFxValue entryElement;
+		args->movie->CreateObject(&entryElement);
+
+		n = 0;
+
+		for (UInt32 i = 0; i < it->second.Durabilities.size(); i++)
+		{
+			for (SInt32 j = SInt32(i); j >= 0; j--)
+			{
+				if (it->second.Durabilities[i] == it->second.Durabilities[j])
+				{
+					n++;
+				}
+			}
+
+			n--;
+				
+			RegisterNumber(&entryElement, "nth", double(n));
+			RegisterString(&entryElement, args->movie, "name", papyrusForm::GetName(it->first).data);
+			RegisterNumber(&entryElement, "formId", double(it->first->formID));
+			RegisterNumber(&entryElement, "durability", double(it->second.Durabilities[i].second));
+
+			_MESSAGE("_DB_SCRL_1");
+			entryArray->PushBack(&entryElement);
+			_MESSAGE("_DB_SCRL_2");
+		}
 	}
 }
 

@@ -33,9 +33,9 @@ Event OnItemAdded(Form akBaseItem, int aiItemCount, ObjectReference akItemRefere
 			EndIf
 			Debug.Trace("_DEBUG_PREF_DTRK_ia1")
 			plugin_spis.MoveEntry(0, akSourceContainer, (PlayerREF as ObjectReference), akBaseItem, akItemReference, aiItemCount, plugin_spis.GetCurrentDurability(), plugin_spis.GetCurrentMaxDurability())
-		ElseIf(!(plugin_spis.IsCurrentGroundKeyNull()))
-			plugin_spis.MoveEntry(2, akSourceContainer, (PlayerREF as ObjectReference), akBaseItem, akItemReference, aiItemCount, 0, 0)
-			plugin_spis.SetCurrentGroundKeyNull()
+		;ElseIf(!(plugin_spis.IsCurrentGroundKeyNull()))
+		;	plugin_spis.MoveEntry(2, akSourceContainer, (PlayerREF as ObjectReference), akBaseItem, akItemReference, aiItemCount, 0, 0)
+		;	plugin_spis.SetCurrentGroundKeyNull()
 		Else
 			Debug.Trace("_DEBUG_PREF_DTRK_ia2")
 			plugin_spis.MoveEntry(2, akSourceContainer, (PlayerREF as ObjectReference), akBaseItem, akItemReference, aiItemCount, 0, 0)

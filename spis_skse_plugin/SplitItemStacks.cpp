@@ -311,6 +311,7 @@ namespace plugin_spis
 
 	bool DurabilityTracker::MoveEntry(UInt8 space, TESObjectREFR * containerFrom, TESObjectREFR * containerTo, TESForm * item, TESObjectREFR * groundItem, UInt32 amount, UInt32 durability, UInt32 maxDurability, UInt32 nth)
 	{
+		_MESSAGE("_DB_MVEN_-1, %s, %d", papyrusForm::GetName(item), amount);
 		if (!amount)
 		{
 			return true;
@@ -379,6 +380,10 @@ namespace plugin_spis
 		}
 	}
 
+
+	//may need to revist this. this function is misbehaving, something in the game fires an add entry during initialization
+	//and that cause 2 sets of armor to appear in the container map. this function is only a 1 time use function, and will
+	//never fire again after a new save. so i may not need to "fix" it, or i may. i'll see.
 	bool DurabilityTracker::WrapEntries(TESObjectREFR* container)
 	{
 		//TESContainer adds always
@@ -389,7 +394,7 @@ namespace plugin_spis
 			if (pContainer->entries[i]->form->IsWeapon() || pContainer->entries[i]->form->IsArmor())
 				for (UInt32 j = 0; j < pContainer->entries[i]->count; j++)
 				{
-					//_MESSAGE("_DEBUG_PREF_WETC_%d,%d", j, pContainer->entries[i]->form->formID);
+					//_MESSAGE("_BG_WREN1, %s, %d, %d, %d", papyrusForm::GetName(pContainer->entries[i]->form), LookupDurabilityInfo(pContainer->entries[i]->form), LookupDurabilityInfo(pContainer->entries[i]->form), pContainer->entries[i]->count);
 					AddEntry(0, container, pContainer->entries[i]->form, nullptr, 1, LookupDurabilityInfo(pContainer->entries[i]->form), LookupDurabilityInfo(pContainer->entries[i]->form));
 				}
 		}
@@ -401,13 +406,13 @@ namespace plugin_spis
 
 		while (pToContRefExC->data->objList->GetNthItem(i))
 		{
-			if (pToContRefExC->data->objList->GetNthItem(i)->type->IsWeapon() || pToContRefExC->data->objList->GetNthItem(i)->type->IsArmor())
+			if (pToContRefExC->data->objList->GetNthItem(i)->type->IsWeapon()/* || pToContRefExC->data->objList->GetNthItem(i)->type->IsArmor()*/)
 			{
 				if (pToContRefExC->data->objList->GetNthItem(i)->countDelta > 0)
 				{
 					for (UInt32 j = 0; j < pToContRefExC->data->objList->GetNthItem(i)->countDelta; j++)
 					{
-						//_MESSAGE("_DEBUG_PREF_WEAE_%d,%d", j, pContainer->entries[i]->form->formID);
+						//_MESSAGE("_BG_WREN2, %s, %d, %d, %d", papyrusForm::GetName(pToContRefExC->data->objList->GetNthItem(i)->type), LookupDurabilityInfo(pToContRefExC->data->objList->GetNthItem(i)->type), LookupDurabilityInfo(pToContRefExC->data->objList->GetNthItem(i)->type), pToContRefExC->data->objList->GetNthItem(i)->countDelta);
 						AddEntry(0, container, pToContRefExC->data->objList->GetNthItem(i)->type, nullptr, 1, LookupDurabilityInfo(pToContRefExC->data->objList->GetNthItem(i)->type), LookupDurabilityInfo(pToContRefExC->data->objList->GetNthItem(i)->type));
 					}
 				}
@@ -415,7 +420,7 @@ namespace plugin_spis
 				{
 					for (UInt32 j = 0; j < pToContRefExC->data->objList->GetNthItem(i)->countDelta; j++)
 					{
-						//_MESSAGE("_DEBUG_PREF_WERE_%d,%d", j, pContainer->entries[i]->form->formID);
+						//_MESSAGE("_BG_WREN3, %s, %d", papyrusForm::GetName(pToContRefExC->data->objList->GetNthItem(i)->type), pToContRefExC->data->objList->GetNthItem(i)->countDelta);
 						RemoveEntry(0, container, pToContRefExC->data->objList->GetNthItem(i)->type, nullptr, 1, 1, 0, 0);
 					}
 				}
@@ -459,25 +464,19 @@ namespace plugin_spis
 
 	UInt32 LookupDurabilityInfo(TESForm* item)
 	{
-		//////_MESSAGE("_DEBUG_PREF_LODI_called function");
-		//////_MESSAGE("_DEBUG_PREF_LODI_%d", item->formID);
 		std::ifstream DurabilitiesInfo("durabilities.txt");
 		std::string foundLine;
 		UInt32 durability = 0xFFFFFFFF;
 
 		std::string tempFindString = int_to_hex(item->formID);
 
-		//////_MESSAGE("_DEBUG_PREF_LODI_%s", tempFindString.c_str());
-
 		while (std::getline(DurabilitiesInfo, foundLine))
 		{
-			//////_MESSAGE("_DEBUG_PREF_LODI_%s", foundLine.c_str());
 			if (!foundLine.find(tempFindString))
 			{
 				std::stringstream ss;
 				ss << std::hex << foundLine.substr(10, 8);
 				ss >> durability;
-				//////_MESSAGE("_DEBUG_PREF_LODI_found durability: %d", durability);
 			}
 		}
 		DurabilitiesInfo.close();
@@ -581,9 +580,6 @@ namespace plugin_spis
 		{
 			globalDurabilityTracker->FindDurabilityContainer(actor, std::get<0>(globalEquippedStates->EquippedEntries[slot])->formID)->Durabilities[pos].second += amount;
 			std::get<2>(globalEquippedStates->EquippedEntries[slot]) = globalDurabilityTracker->FindDurabilityContainer(actor, std::get<0>(globalEquippedStates->EquippedEntries[slot])->formID)->Durabilities[pos].second;
-			//_MESSAGE("_DEBUG_PREF_INCD_3,%d", std::get<0>(globalEquippedStates->EquippedEntries[slot])->formID);
-			//_MESSAGE("_DEBUG_PREF_INCD_4,%d", globalDurabilityTracker->FindDurabilityContainer(actor, std::get<0>(globalEquippedStates->EquippedEntries[slot])->formID)->Durabilities[pos].second);
-
 			//finds last entry with new inc/decremented durability and updates n value in equipped states
 			UInt32 n = 0;
 			while (globalDurabilityTracker->FindEntryContainer(0, actor, std::get<0>(globalEquippedStates->EquippedEntries[slot]), globalDurabilityTracker->FindDurabilityContainer(actor, std::get<0>(globalEquippedStates->EquippedEntries[slot])->formID)->Durabilities[pos].second, globalDurabilityTracker->FindDurabilityContainer(actor, std::get<0>(globalEquippedStates->EquippedEntries[slot])->formID)->Durabilities[pos].first, n) > -1)
@@ -598,10 +594,6 @@ namespace plugin_spis
 
 	bool DecrementEquippedDurability(StaticFunctionTag* base, UInt32 slot, UInt32 amount, TESObjectREFR* actor)
 	{
-		_MESSAGE("_DEBUG_PREF_DECD_1,%d", std::get<0>(globalEquippedStates->EquippedEntries[slot])->formID);
-		_MESSAGE("_DEBUG_PREF_DECD_2,%d", std::get<1>(globalEquippedStates->EquippedEntries[slot]));
-		_MESSAGE("_DEBUG_PREF_DECD_3,%d", std::get<2>(globalEquippedStates->EquippedEntries[slot]));
-		_MESSAGE("_DEBUG_PREF_DECD_4,%d", std::get<3>(globalEquippedStates->EquippedEntries[slot]));
 		SInt32 pos = globalDurabilityTracker->FindEntryContainer(0, actor, std::get<0>(globalEquippedStates->EquippedEntries[slot]), std::get<2>(globalEquippedStates->EquippedEntries[slot]), std::get<1>(globalEquippedStates->EquippedEntries[slot]), std::get<3>(globalEquippedStates->EquippedEntries[slot]));
 		if (pos > -1)
 		{
@@ -611,10 +603,8 @@ namespace plugin_spis
 			UInt32 n = 0;
 			while (globalDurabilityTracker->FindEntryContainer(0, actor, std::get<0>(globalEquippedStates->EquippedEntries[slot]), globalDurabilityTracker->FindDurabilityContainer(actor, std::get<0>(globalEquippedStates->EquippedEntries[slot])->formID)->Durabilities[pos].second, globalDurabilityTracker->FindDurabilityContainer(actor, std::get<0>(globalEquippedStates->EquippedEntries[slot])->formID)->Durabilities[pos].first, n) > -1)
 			{
-				_MESSAGE("_DEBUG_PREF_DECD_5,%d", n);
 				std::get<3>(globalEquippedStates->EquippedEntries[slot]) = n;
 				n++;
-				_MESSAGE("_DEBUG_PREF_DECD_6,%d", n);
 			}
 			return true;
 		}
@@ -640,8 +630,6 @@ namespace plugin_spis
 	bool SetCurrentGroundKey(StaticFunctionTag * base, TESObjectREFR * obj)
 	{
 		globalCurrentGroundKey->SetGroundKey(obj);
-		_MESSAGE("_DEBUG_PREF_SECG1 %d", globalCurrentGroundKey->GetGroundKey().gethashKey());
-		_MESSAGE("_DEBUG_PREF_SECG2 %d", (*globalDurabilityTracker->GroundEntries)[globalCurrentGroundKey->GetGroundKey()].second);
 		return true;
 	}
 
@@ -675,6 +663,14 @@ namespace plugin_spis
 		virtual void Invoke(Args * args)
 		{
 			IncrementDurability(args, globalDurabilityTracker, globalCurrentContainer);
+		}
+	};
+
+	class SKSEScaleform_GetRepairList : public GFxFunctionHandler
+	{
+		virtual void Invoke(Args * args)
+		{
+			GetRepairList(args, globalDurabilityTracker, globalCurrentContainer);
 		}
 	};
 
@@ -788,6 +784,8 @@ namespace plugin_spis
 		RegisterFunction <SKSEScaleform_SetEquippedState>(root, view, "SetEquippedState");
 
 		RegisterFunction <SKSEScaleform_IncrementDurability>(root, view, "IncrementDurability");
+
+		RegisterFunction <SKSEScaleform_GetRepairList>(root, view, "GetRepairList");
 
 		return true;
 	}
